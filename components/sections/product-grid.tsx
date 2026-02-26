@@ -1,6 +1,7 @@
 import type { APICollectionGetByIdResult, APIProductsBrowseResult } from "commerce-kit";
 import { ArrowRight } from "lucide-react";
 import { cacheLife } from "next/cache";
+import { Badge } from "@/components/ui/badge";
 import { commerce } from "@/lib/commerce";
 import { CURRENCY, LOCALE } from "@/lib/constants";
 import { formatMoney } from "@/lib/money";
@@ -42,7 +43,7 @@ export async function ProductGrid({
 					<YnsLink
 						prefetch={"eager"}
 						href={viewAllHref}
-						className="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+						className="hidden sm:inline-flex items-center gap-1 text-sm font-black uppercase underline hover:no-underline"
 					>
 						View all
 						<ArrowRight className="h-4 w-4" />
@@ -51,68 +52,88 @@ export async function ProductGrid({
 			</div>
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-				{displayProducts.map((product) => {
-					const variants = "variants" in product ? product.variants : null;
-					const firstVariantPrice = variants?.[0] ? BigInt(variants[0].price) : null;
-					const { minPrice, maxPrice } =
-						variants && firstVariantPrice !== null
-							? variants.reduce(
-									(acc, v) => {
-										const price = BigInt(v.price);
-										return {
-											minPrice: price < acc.minPrice ? price : acc.minPrice,
-											maxPrice: price > acc.maxPrice ? price : acc.maxPrice,
-										};
-									},
-									{ minPrice: firstVariantPrice, maxPrice: firstVariantPrice },
-								)
-							: { minPrice: null, maxPrice: null };
+				{displayProducts.map(
+					(product: Product & { badgeText?: string; badgeColor?: string }, index: number) => {
+						const variants = "variants" in product ? product.variants : null;
+						const firstVariantPrice = variants?.[0] ? BigInt(variants[0].price) : null;
+						const { minPrice, maxPrice } =
+							variants && firstVariantPrice !== null
+								? variants.reduce(
+										(acc: { minPrice: bigint; maxPrice: bigint }, v: { price: string }) => {
+											const price = BigInt(v.price);
+											return {
+												minPrice: price < acc.minPrice ? price : acc.minPrice,
+												maxPrice: price > acc.maxPrice ? price : acc.maxPrice,
+											};
+										},
+										{ minPrice: firstVariantPrice, maxPrice: firstVariantPrice },
+									)
+								: { minPrice: null, maxPrice: null };
 
-					const priceDisplay =
-						variants && variants.length > 1 && minPrice && maxPrice && minPrice !== maxPrice
-							? `${formatMoney({ amount: minPrice, currency: CURRENCY, locale: LOCALE })} - ${formatMoney({ amount: maxPrice, currency: CURRENCY, locale: LOCALE })}`
-							: minPrice
-								? formatMoney({ amount: minPrice, currency: CURRENCY, locale: LOCALE })
-								: null;
+						const priceDisplay =
+							variants && variants.length > 1 && minPrice && maxPrice && minPrice !== maxPrice
+								? `${formatMoney({ amount: minPrice, currency: CURRENCY, locale: LOCALE })} - ${formatMoney({ amount: maxPrice, currency: CURRENCY, locale: LOCALE })}`
+								: minPrice
+									? formatMoney({ amount: minPrice, currency: CURRENCY, locale: LOCALE })
+									: null;
 
-					const allImages = [
-						...(product.images ?? []),
-						...(variants
-							?.flatMap((v) => v.images ?? [])
-							.filter((img) => !(product.images ?? []).includes(img)) ?? []),
-					];
-					const primaryImage = allImages[0];
-					const secondaryImage = allImages[1];
+						const allImages = [
+							...(product.images ?? []),
+							...(variants
+								?.flatMap((v: { images?: string[] }) => v.images ?? [])
+								.filter((img: string) => !(product.images ?? []).includes(img)) ?? []),
+						];
+						const primaryImage = allImages[0];
+						const secondaryImage = allImages[1];
 
-					return (
-						<YnsLink prefetch={"eager"} key={product.id} href={`/product/${product.slug}`} className="group">
-							<div className="relative aspect-square bg-secondary rounded-2xl overflow-hidden mb-4">
-								{primaryImage && (
-									<YNSImage
-										src={primaryImage}
-										alt={product.name}
-										fill
-										sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-										className="object-cover transition-opacity duration-500 group-hover:opacity-0"
-									/>
-								)}
-								{secondaryImage && (
-									<YNSImage
-										src={secondaryImage}
-										alt={`${product.name} - alternate view`}
-										fill
-										sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-										className="object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-									/>
-								)}
-							</div>
-							<div className="space-y-1">
-								<h3 className="text-base font-medium text-foreground">{product.name}</h3>
-								<p className="text-base font-semibold text-foreground">{priceDisplay}</p>
-							</div>
-						</YnsLink>
-					);
-				})}
+						return (
+							<YnsLink
+								prefetch={"eager"}
+								key={product.id}
+								href={`/product/${product.slug}`}
+								className="group relative"
+							>
+								<div className="relative aspect-square bg-neutral-100 border-2 border-black overflow-hidden mb-4">
+									{product.badgeText && (
+										<div className="absolute top-2 left-2 z-10">
+											<Badge
+												className="text-white border-0"
+												style={{
+													backgroundColor: product.badgeColor || "black",
+												}}
+											>
+												{product.badgeText}
+											</Badge>
+										</div>
+									)}
+									{primaryImage && (
+										<YNSImage
+											src={primaryImage}
+											alt={product.name}
+											fill
+											sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+											className="object-cover group-hover:opacity-0"
+											priority={Boolean(index < 3)}
+										/>
+									)}
+									{secondaryImage && (
+										<YNSImage
+											src={secondaryImage}
+											alt={`${product.name} - alternate view`}
+											fill
+											sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+											className="object-cover opacity-0 group-hover:opacity-100"
+										/>
+									)}
+								</div>
+								<div className="space-y-1">
+									<h3 className="text-base font-black uppercase">{product.name}</h3>
+									<p className="text-base font-black font-mono tabular-nums">{priceDisplay}</p>
+								</div>
+							</YnsLink>
+						);
+					},
+				)}
 			</div>
 
 			{showViewAll && (
@@ -120,7 +141,7 @@ export async function ProductGrid({
 					<YnsLink
 						prefetch={"eager"}
 						href={viewAllHref}
-						className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+						className="inline-flex items-center gap-1 text-sm font-black uppercase underline hover:no-underline"
 					>
 						View all products
 						<ArrowRight className="h-4 w-4" />
