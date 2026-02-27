@@ -1,11 +1,13 @@
 "use client";
 
+import axios from "axios";
 import {
 	Camera,
 	ChevronLeft,
 	ChevronRight,
 	DollarSign,
 	FileIcon,
+	Loader2,
 	Package,
 	Plus,
 	Tag,
@@ -14,8 +16,8 @@ import {
 	X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { safe } from "safe-try";
 import { ImageUpload } from "@/components/image-upload";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,6 +52,7 @@ export function VariantDetailsSheet({
 }: VariantDetailsSheetProps) {
 	const [localVariant, setLocalVariant] = useState<VariantData>(variant);
 	const stockInputRef = useRef<HTMLInputElement>(null);
+	const [isUploadingFile, setIsUploadingFile] = useState(false);
 
 	useEffect(() => {
 		setLocalVariant(variant);
@@ -148,60 +151,66 @@ export function VariantDetailsSheet({
 						/>
 					</div>
 
-					{/* Digital Attachments */}
+					{/* Digital File */}
 					<div className="bg-white p-3 border-2 border-black space-y-3">
 						<div className="flex items-center gap-2">
 							<FileIcon size={16} className="text-black" />
-							<h3 className="text-sm font-black uppercase">Pièces jointes</h3>
+							<h3 className="text-sm font-black uppercase">Fichier numérique</h3>
 						</div>
-						<div className="space-y-2">
-							{((localVariant.digitalAttachments as { name: string; url: string }[]) || []).map(
-								(file, index) => (
-									<div key={index} className="flex items-center gap-2 p-2 border-2 border-black bg-white">
-										<FileIcon size={14} className="text-black shrink-0" />
-										<span className="flex-1 text-xs font-medium truncate">{file.name}</span>
-										<button
-											type="button"
-											className="p-2 text-black hover:bg-black hover:text-white"
-											onClick={() => {
-												const updated = [...(localVariant.digitalAttachments || [])];
-												updated.splice(index, 1);
-												handleChange("digitalAttachments", updated);
-											}}
-										>
-											<Trash2 size={14} />
-										</button>
-									</div>
-								),
-							)}
-							<Button
+						{localVariant.digitalFileUrl ? (
+							<div className="flex items-center gap-2 p-2 border-2 border-black bg-white">
+								<FileIcon size={14} className="text-black shrink-0" />
+								<span className="flex-1 text-xs font-medium truncate">
+									{String(localVariant.digitalFileUrl).split("/").pop()}
+								</span>
+								<button
+									type="button"
+									className="p-2 text-black hover:bg-black hover:text-white"
+									onClick={() => handleChange("digitalFileUrl", null)}
+								>
+									<Trash2 size={14} />
+								</button>
+							</div>
+						) : (
+							<button
 								type="button"
-								variant="outline"
-								size="sm"
-								className="w-full text-sm font-bold border-2 border-black border-dashed hover:bg-black hover:text-white"
+								disabled={isUploadingFile}
+								className="w-full py-2 text-sm font-bold border-2 border-black border-dashed hover:bg-black hover:text-white disabled:opacity-50 flex items-center justify-center gap-2"
 								onClick={() => {
 									const input = document.createElement("input");
 									input.type = "file";
-									input.onchange = (e) => {
+									input.onchange = async (e) => {
 										const target = e.target as HTMLInputElement;
 										const file = target.files?.[0];
-										if (file) {
-											const updated = [
-												...(localVariant.digitalAttachments || []),
-												{ name: file.name, url: URL.createObjectURL(file) },
-											];
-											handleChange("digitalAttachments", updated);
+										if (!file) return;
+										setIsUploadingFile(true);
+										const [err, res] = await safe(
+											axios.post("/api/upload", { filename: file.name, contentType: file.type }),
+										);
+										if (!err && res) {
+											await axios.put(res.data.uploadUrl, file, {
+												headers: { "Content-Type": file.type },
+											});
+											handleChange("digitalFileUrl", res.data.publicUrl);
 										}
+										setIsUploadingFile(false);
 									};
 									input.click();
 								}}
 							>
-								<Plus size={14} className="mr-1" /> Ajouter
-							</Button>
-						</div>
+								{isUploadingFile ? (
+									<Loader2 size={14} className="animate-spin" />
+								) : (
+									<>
+										<Plus size={14} /> Uploader un fichier
+									</>
+								)}
+							</button>
+						)}
 					</div>
 
 					{/* Pricing */}
+
 					<div className="p-3 border-2 border-black bg-white space-y-3">
 						<div className="flex items-center gap-2">
 							<DollarSign size={16} className="text-black" />

@@ -36,6 +36,9 @@ interface VariantsSectionProps {
 	duplicateSelectedVariants: () => void;
 	updateVariantField: (index: number, field: string | Record<string, unknown>, value?: unknown) => void;
 	setEditingVariantIdx: (index: number | null) => void;
+	getVariantVisuals: (
+		variant: Record<string, unknown>,
+	) => { type: "color" | "image"; value: string; label: string }[];
 }
 
 export function VariantsSection({
@@ -57,6 +60,7 @@ export function VariantsSection({
 	duplicateSelectedVariants,
 	updateVariantField,
 	setEditingVariantIdx,
+	getVariantVisuals,
 }: VariantsSectionProps) {
 	const [valueInputs, setValueInputs] = useState<Record<number, string>>({});
 	const [colorInputs, setColorInputs] = useState<Record<number, string>>({});
@@ -161,44 +165,44 @@ export function VariantsSection({
 									>
 										<Plus size={11} />
 									</button>
-								{confirmDeleteIdx === idx ? (
-									<div className="flex items-center gap-1">
+									{confirmDeleteIdx === idx ? (
+										<div className="flex items-center gap-1">
+											<button
+												type="button"
+												onClick={(e) => {
+													e.stopPropagation();
+													removeOption(idx);
+													setConfirmDeleteIdx(null);
+												}}
+												className="h-5 px-1.5 flex items-center justify-center bg-red-500 text-white text-[8px] font-bold hover:bg-red-600"
+											>
+												OUI
+											</button>
+											<button
+												type="button"
+												onClick={(e) => {
+													e.stopPropagation();
+													setConfirmDeleteIdx(null);
+												}}
+												className="h-5 px-1.5 flex items-center justify-center bg-white text-black text-[8px] font-bold hover:bg-neutral-200"
+											>
+												NON
+											</button>
+										</div>
+									) : (
 										<button
 											type="button"
 											onClick={(e) => {
 												e.stopPropagation();
-												removeOption(idx);
-												setConfirmDeleteIdx(null);
+												setConfirmDeleteIdx(idx);
 											}}
-											className="h-5 px-1.5 flex items-center justify-center bg-red-500 text-white text-[8px] font-bold hover:bg-red-600"
+											className="h-5 w-5 flex items-center justify-center text-white hover:bg-white hover:text-black"
+											title="Supprimer cette option"
+											aria-label={`Supprimer l'option ${option.name || idx + 1}`}
 										>
-											OUI
+											<X size={11} />
 										</button>
-										<button
-											type="button"
-											onClick={(e) => {
-												e.stopPropagation();
-												setConfirmDeleteIdx(null);
-											}}
-											className="h-5 px-1.5 flex items-center justify-center bg-white text-black text-[8px] font-bold hover:bg-neutral-200"
-										>
-											NON
-										</button>
-									</div>
-								) : (
-									<button
-										type="button"
-										onClick={(e) => {
-											e.stopPropagation();
-											setConfirmDeleteIdx(idx);
-										}}
-										className="h-5 w-5 flex items-center justify-center text-white hover:bg-white hover:text-black"
-										title="Supprimer cette option"
-										aria-label={`Supprimer l'option ${option.name || idx + 1}`}
-									>
-										<X size={11} />
-									</button>
-								)}
+									)}
 								</div>
 							</div>
 
@@ -512,7 +516,19 @@ export function VariantsSection({
 												/>
 											</td>
 											<td className="p-2">
-												<div className="text-[10px] font-bold uppercase">{v.name}</div>
+												<div className="flex items-center gap-1.5">
+													{getVariantVisuals(v).map((visual, vi) =>
+														visual.type === "color" ? (
+															<span
+																key={vi}
+																className="w-3 h-3 border border-black shrink-0"
+																style={{ backgroundColor: visual.value }}
+																title={visual.label}
+															/>
+														) : null,
+													)}
+													<div className="text-[10px] font-bold uppercase">{v.name}</div>
+												</div>
 												{v.sku && <div className="text-[8px] text-neutral-400">{v.sku}</div>}
 											</td>
 											<td className="p-2">

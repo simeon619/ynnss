@@ -42,6 +42,9 @@ export function ProductForm({ product, categories, collections, title, descripti
 	const [name, setName] = useState(product?.name || "");
 	const [selectedCategoryId, setSelectedCategoryId] = useState(product?.categoryId || "");
 	const [activeTab, setActiveTab] = useState<"details" | "seo">("details");
+	const [status, setStatus] = useState<"draft" | "published" | "hidden">(
+		(product?.status as "draft" | "published" | "hidden") || "draft",
+	);
 
 	// Price & Inventory State (Simple Product)
 	const [price, setPrice] = useState(String(product?.price || ""));
@@ -405,6 +408,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 	};
 
 	const handleSubmit = (formData: FormData) => {
+		formData.set("status", status);
 		formData.append("collections", JSON.stringify(selectedCollections));
 		formData.append("images", JSON.stringify(images));
 		formData.append("options", JSON.stringify(options));
@@ -462,7 +466,6 @@ export function ProductForm({ product, categories, collections, title, descripti
 		const formData = new FormData(e.currentTarget);
 		handleSubmit(formData);
 	};
-
 
 	const toggleCollection = (slug: string) => {
 		if (selectedCollections.includes(slug)) {
@@ -615,6 +618,23 @@ export function ProductForm({ product, categories, collections, title, descripti
 													className="w-full p-4 border-4 border-black bg-white focus:outline-none font-mono text-sm resize-none"
 												/>
 											</div>
+
+											<div className="space-y-2">
+												<label
+													htmlFor="summary"
+													className="text-xs font-black uppercase tracking-widest text-neutral-500"
+												>
+													RÉSUMÉ COURT
+												</label>
+												<textarea
+													id="summary"
+													name="summary"
+													defaultValue={product?.summary || ""}
+													placeholder="RÉSUMÉ EN 1-2 PHRASES..."
+													rows={3}
+													className="w-full p-4 border-4 border-black bg-white focus:outline-none font-mono text-sm resize-none"
+												/>
+											</div>
 										</div>
 									</section>
 
@@ -655,6 +675,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 											duplicateSelectedVariants={duplicateSelectedVariants}
 											updateVariantField={updateVariantField}
 											setEditingVariantIdx={setEditingVariantIdx}
+											getVariantVisuals={getVariantVisuals}
 										/>
 									</section>
 								</div>
@@ -669,6 +690,30 @@ export function ProductForm({ product, categories, collections, title, descripti
 											<h2 className="text-lg font-black uppercase tracking-tight">ORGANISATION</h2>
 										</div>
 										<div className="space-y-6">
+											{/* STATUS TOGGLE */}
+											<div className="space-y-2">
+												<label className="text-xs font-black uppercase tracking-widest text-neutral-500">
+													STATUT
+												</label>
+												<div className="flex border-2 border-black">
+													{(["draft", "published", "hidden"] as const).map((s) => (
+														<button
+															key={s}
+															type="button"
+															onClick={() => setStatus(s)}
+															className={cn(
+																"flex-1 py-2 text-[9px] font-black uppercase border-r-2 border-black last:border-r-0",
+																status === s
+																	? "bg-black text-white"
+																	: "bg-white text-black hover:bg-neutral-100",
+															)}
+														>
+															{s === "draft" ? "BROUILLON" : s === "published" ? "PUBLIÉ" : "MASQUÉ"}
+														</button>
+													))}
+												</div>
+											</div>
+
 											<div className="space-y-2">
 												<label className="text-xs font-black uppercase tracking-widest text-neutral-500">
 													CATÉGORIE <span className="text-red-600">*</span>
@@ -754,6 +799,22 @@ export function ProductForm({ product, categories, collections, title, descripti
 														))}
 													</div>
 												)}
+											</div>
+
+											<div className="space-y-2">
+												<label
+													htmlFor="vendor"
+													className="text-xs font-black uppercase tracking-widest text-neutral-500"
+												>
+													VENDEUR / MARQUE
+												</label>
+												<input
+													id="vendor"
+													name="vendor"
+													defaultValue={product?.vendor || ""}
+													placeholder="EX: NIKE"
+													className="w-full h-12 px-4 border-2 border-black bg-white focus:outline-none font-mono text-xs font-bold uppercase"
+												/>
 											</div>
 
 											<div className="space-y-2">
