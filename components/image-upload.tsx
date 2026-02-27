@@ -15,6 +15,7 @@ interface ImageUploadProps {
 
 export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
 	const [isUploading, setIsUploading] = useState(false);
+	const [confirmRemoveUrl, setConfirmRemoveUrl] = useState<string | null>(null);
 
 	const onDrop = useCallback(
 		async (acceptedFiles: File[]) => {
@@ -72,13 +73,38 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
 						className="relative w-[120px] h-[120px] overflow-hidden bg-white border-2 border-black group"
 					>
 						<Image src={url} alt={`Product ${idx}`} fill className="object-cover" />
-						<button
-							type="button"
-							onClick={() => onRemove(url)}
-							className="absolute top-1 right-1 p-1 bg-black text-white"
-						>
-							<X size={12} />
-						</button>
+						{confirmRemoveUrl === url ? (
+							<div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-1">
+								<span className="text-white text-[9px] font-bold uppercase">Supprimer ?</span>
+								<div className="flex gap-1">
+									<button
+										type="button"
+										onClick={() => {
+											onRemove(url);
+											setConfirmRemoveUrl(null);
+										}}
+										className="px-1.5 py-0.5 bg-white text-black text-[9px] font-bold uppercase border border-white hover:bg-red-500 hover:text-white hover:border-red-500"
+									>
+										OUI
+									</button>
+									<button
+										type="button"
+										onClick={() => setConfirmRemoveUrl(null)}
+										className="px-1.5 py-0.5 bg-transparent text-white text-[9px] font-bold uppercase border border-white hover:bg-white hover:text-black"
+									>
+										NON
+									</button>
+								</div>
+							</div>
+						) : (
+							<button
+								type="button"
+								onClick={() => setConfirmRemoveUrl(url)}
+								className="absolute top-1 right-1 p-1 bg-black text-white"
+							>
+								<X size={12} />
+							</button>
+						)}
 					</div>
 				))}
 

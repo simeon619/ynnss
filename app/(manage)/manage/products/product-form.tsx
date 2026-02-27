@@ -722,6 +722,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 													name="categoryId"
 													value={selectedCategoryId}
 													onChange={(e) => setSelectedCategoryId(e.target.value)}
+													required
 													className="w-full h-14 px-4 border-4 border-black bg-white focus:outline-none font-mono text-xs font-black uppercase"
 												>
 													<option value="">SÉLECTIONNER...</option>
