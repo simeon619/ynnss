@@ -27,8 +27,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 	const pathname = usePathname();
 
 	return (
-		<div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0 p-6 min-h-[calc(100vh-(--spacing(16)))]">
-			<aside className="lg:-mx-4 lg:w-1/5 overflow-x-auto">
+		<div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0 min-h-full">
+			<aside className="lg:w-48 shrink-0 overflow-x-auto">
 				<nav className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
 					{sidebarNavItems.map((item) => (
 						<Link
