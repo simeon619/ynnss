@@ -533,7 +533,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 						type="button"
 						onClick={() => setActiveTab("details")}
 						className={cn(
-							"flex-1 px-6 py-4 text-sm font-black uppercase tracking-widest border-r-2 border-black",
+							"flex-1 px-6 py-4 text-sm font-black uppercase tracking-widest border-r-4 border-black",
 							activeTab === "details"
 								? "bg-black text-white"
 								: "bg-white text-black hover:bg-black hover:text-white",
@@ -625,7 +625,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 															setSlug(e.target.value);
 															setIsAutoSlug(false);
 														}}
-														className="flex-1 h-12 px-4 border-2 border-black bg-white focus:outline-none font-mono text-sm font-bold"
+														className="flex-1 h-14 px-4 border-4 border-black bg-white focus:outline-none font-mono text-sm font-bold"
 														placeholder="mon-produit"
 													/>
 												</div>
@@ -734,7 +734,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 																"flex-1 py-2 text-[9px] font-black uppercase border-r-2 border-black last:border-r-0",
 																status === s
 																	? "bg-black text-white"
-																	: "bg-white text-black hover:bg-neutral-100",
+																	: "bg-white text-black hover:bg-black hover:text-white",
 															)}
 														>
 															{s === "draft" ? "BROUILLON" : s === "published" ? "PUBLIÉ" : "MASQUÉ"}
@@ -843,7 +843,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 													name="vendor"
 													defaultValue={product?.vendor || ""}
 													placeholder="EX: NIKE"
-													className="w-full h-12 px-4 border-2 border-black bg-white focus:outline-none font-mono text-xs font-bold uppercase"
+													className="w-full h-14 px-4 border-4 border-black bg-white focus:outline-none font-mono text-xs font-bold uppercase"
 												/>
 											</div>
 
@@ -856,20 +856,20 @@ export function ProductForm({ product, categories, collections, title, descripti
 														name="badgeText"
 														placeholder="EX: NOUVEAU"
 														defaultValue={product?.badgeText || ""}
-														className="w-full h-12 px-4 border-2 border-black bg-white focus:outline-none font-mono text-xs font-black uppercase"
+														className="w-full h-14 px-4 border-4 border-black bg-white focus:outline-none font-mono text-xs font-black uppercase"
 													/>
 													<div className="flex gap-2">
 														<input
 															type="color"
 															name="badgeColorPicker"
 															defaultValue={product?.badgeColor || "#000000"}
-															className="w-14 h-12 border-2 border-black bg-white cursor-pointer"
+															className="w-14 h-14 border-4 border-black bg-white cursor-pointer"
 														/>
 														<input
 															name="badgeColor"
 															placeholder="#000000"
 															defaultValue={product?.badgeColor || "#000000"}
-															className="flex-1 h-12 px-4 border-2 border-black bg-white focus:outline-none font-mono text-xs font-bold"
+															className="flex-1 h-14 px-4 border-4 border-black bg-white focus:outline-none font-mono text-xs font-bold"
 														/>
 													</div>
 												</div>

@@ -503,7 +503,7 @@ export function VariantsSection({
 										<tr
 											key={i}
 											className={cn(
-												v.selected ? "bg-yellow-100" : "hover:bg-neutral-100",
+												v.selected ? "bg-neutral-200" : "hover:bg-neutral-100",
 												!v.isEnabled && "opacity-50",
 											)}
 										>
@@ -541,7 +541,7 @@ export function VariantsSection({
 															const val = e.target.value.replace(/[^\d]/g, "");
 															updateVariantField(i, "price", val);
 														}}
-														className={`w-full h-10 px-3 pr-8 border-2 focus:outline-none focus:ring-2 focus:ring-black font-mono font-bold text-base text-right ${!v.price || Number(v.price) <= 0 ? "border-red-600 bg-red-50" : "border-black bg-white"}`}
+														className={`w-full h-10 px-3 pr-8 border-2 focus:outline-none font-mono font-bold text-base text-right ${!v.price || Number(v.price) <= 0 ? "border-red-600 bg-red-50" : "border-black bg-white"}`}
 														placeholder="0"
 													/>
 													<span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400">
@@ -564,7 +564,7 @@ export function VariantsSection({
 															updateVariantField(i, "stock", val);
 														}}
 														className={cn(
-															"w-full h-10 px-3 border-2 bg-white focus:outline-none focus:ring-2 focus:ring-black font-mono font-bold text-base text-right",
+															"w-full h-10 px-3 border-2 bg-white focus:outline-none font-mono font-bold text-base text-right",
 															isOutOfStock && "border-red-500 bg-red-50 text-red-600",
 															isLow && "border-black bg-white",
 															!isOutOfStock && !isLow && "border-black",
