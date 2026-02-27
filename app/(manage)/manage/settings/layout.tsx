@@ -10,6 +10,10 @@ const sidebarNavItems = [
 		href: "/manage/settings/general",
 	},
 	{
+		title: "Storefront",
+		href: "/manage/settings/storefront",
+	},
+	{
 		title: "Shipping",
 		href: "/manage/settings/shipping",
 	},
@@ -17,7 +21,6 @@ const sidebarNavItems = [
 		title: "Payments",
 		href: "/manage/settings/payments",
 	},
-	// Other settings link would go here...
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
