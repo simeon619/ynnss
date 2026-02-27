@@ -40,6 +40,7 @@ export function ProductsTable({ products, categories }: ProductsTableProps) {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<string | null>(null);
 	const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+	const [stockFilter, setStockFilter] = useState<string | null>(null);
 	const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(null);
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [currentPage, setCurrentPage] = useState(1);
@@ -56,8 +57,17 @@ export function ProductsTable({ products, categories }: ProductsTableProps) {
 
 		const matchesStatus = statusFilter ? product.status === statusFilter : true;
 		const matchesCategory = categoryFilter ? product.categoryId === categoryFilter : true;
+		const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
+		const matchesStock =
+			stockFilter === "out"
+				? totalStock === 0
+				: stockFilter === "low"
+					? totalStock > 0 && totalStock <= 5
+					: stockFilter === "in"
+						? totalStock > 5
+						: true;
 
-		return matchesSearch && matchesStatus && matchesCategory;
+		return matchesSearch && matchesStatus && matchesCategory && matchesStock;
 	});
 
 	// Pagination Logic
@@ -280,6 +290,57 @@ export function ProductsTable({ products, categories }: ProductsTableProps) {
 									{c.name}
 								</DropdownMenuCheckboxItem>
 							))}
+						</DropdownMenuContent>
+					</DropdownMenu>
+
+					{/* Stock Filter */}
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<button
+								type="button"
+								className="flex items-center gap-2 px-3 py-1.5 border-2 border-black bg-white hover:bg-black hover:text-white text-xs font-bold uppercase tracking-widest"
+							>
+								<Filter size={14} className="text-black" />
+								<span>Stock</span>
+								{stockFilter && (
+									<span className="ml-1 bg-black text-white px-1.5 py-0">
+										{stockFilter === "out" ? "RUPTURE" : stockFilter === "low" ? "FAIBLE" : "OK"}
+									</span>
+								)}
+							</button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent
+							align="start"
+							className="w-48 rounded-none border-black font-mono text-xs shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+						>
+							<DropdownMenuCheckboxItem
+								checked={stockFilter === null}
+								onCheckedChange={() => setStockFilter(null)}
+								className="rounded-none cursor-pointer"
+							>
+								Tous les stocks
+							</DropdownMenuCheckboxItem>
+							<DropdownMenuCheckboxItem
+								checked={stockFilter === "in"}
+								onCheckedChange={() => setStockFilter("in")}
+								className="rounded-none cursor-pointer"
+							>
+								En stock (&gt;5)
+							</DropdownMenuCheckboxItem>
+							<DropdownMenuCheckboxItem
+								checked={stockFilter === "low"}
+								onCheckedChange={() => setStockFilter("low")}
+								className="rounded-none cursor-pointer"
+							>
+								Stock faible (1–5)
+							</DropdownMenuCheckboxItem>
+							<DropdownMenuCheckboxItem
+								checked={stockFilter === "out"}
+								onCheckedChange={() => setStockFilter("out")}
+								className="rounded-none cursor-pointer"
+							>
+								En rupture (0)
+							</DropdownMenuCheckboxItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
