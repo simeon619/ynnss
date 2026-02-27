@@ -6,7 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 interface SEOSectionProps {
-	product?: Record<string, unknown>;
+	product?: {
+		seoTitle?: string | null;
+		seoDescription?: string | null;
+		description?: string | null;
+	};
 	name: string;
 	slug: string;
 }

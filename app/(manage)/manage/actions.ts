@@ -766,10 +766,23 @@ export async function deleteCollection(id: string) {
 
 export async function searchProducts(query: string) {
 	if (!query) return [];
-	return await (await getDb()).query.products.findMany({
+	const matchedProducts = await (await getDb()).query.products.findMany({
 		where: or(like(products.name, `%${query}%`), like(products.slug, `%${query}%`)),
 		limit: 20,
+		with: {
+			variants: {
+				columns: {
+					price: true,
+				},
+			},
+		},
 	});
+	return matchedProducts.map((product) => ({
+		id: product.id,
+		name: product.name,
+		images: product.images || [],
+		price: product.variants[0]?.price || "0",
+	}));
 }
 
 export async function getVendors() {
@@ -781,11 +794,26 @@ export async function getVendors() {
 }
 
 export async function getCollectionProducts(collectionSlug: string) {
-	const allProducts = await (await getDb()).query.products.findMany();
-	return allProducts.filter((p) => {
-		const colSlugs = typeof p.collections === "string" ? JSON.parse(p.collections) : p.collections;
-		return Array.isArray(colSlugs) && colSlugs.includes(collectionSlug);
+	const allProducts = await (await getDb()).query.products.findMany({
+		with: {
+			variants: {
+				columns: {
+					price: true,
+				},
+			},
+		},
 	});
+	return allProducts
+		.filter((p) => {
+			const colSlugs = typeof p.collections === "string" ? JSON.parse(p.collections) : p.collections;
+			return Array.isArray(colSlugs) && colSlugs.includes(collectionSlug);
+		})
+		.map((product) => ({
+			id: product.id,
+			name: product.name,
+			images: product.images || [],
+			price: product.variants[0]?.price || "0",
+		}));
 }
 
 /**

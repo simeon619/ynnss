@@ -3,6 +3,7 @@
 import {
 	closestCenter,
 	DndContext,
+	type DragEndEvent,
 	KeyboardSensor,
 	PointerSensor,
 	useSensor,
@@ -59,7 +60,14 @@ interface CollectionFormProps {
 		activeFrom?: string | null;
 		activeTo?: string | null;
 	};
-	initialProducts?: { id: string; title: string; image: string | null; price: number }[];
+	initialProducts?: CollectionProduct[];
+}
+
+interface CollectionProduct {
+	id: string;
+	name: string;
+	images: string[];
+	price: string;
 }
 
 function SortableItem({
@@ -68,7 +76,7 @@ function SortableItem({
 	onRemove,
 }: {
 	id: string;
-	product: { id: string; title: string; image: string | null; price: number };
+	product: CollectionProduct;
 	onRemove: () => void;
 }) {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -152,11 +160,8 @@ export function CollectionForm({ collection, initialProducts = [] }: CollectionF
 		getVendors().then(setVendorsList);
 	}, []);
 
-	const [selectedProducts, setSelectedProducts] =
-		useState<{ id: string; title: string; image: string | null; price: number }[]>(initialProducts);
-	const [searchResults, setSearchResults] = useState<
-		{ id: string; title: string; image: string | null; price: number }[]
-	>([]);
+	const [selectedProducts, setSelectedProducts] = useState<CollectionProduct[]>(initialProducts);
+	const [searchResults, setSearchResults] = useState<CollectionProduct[]>([]);
 	const [showSearchResults, setShowSearchResults] = useState(false);
 	const [isSearching, setIsSearching] = useState(false);
 	const [productSearch, setProductSearch] = useState("");
@@ -179,13 +184,16 @@ export function CollectionForm({ collection, initialProducts = [] }: CollectionF
 		}),
 	);
 
-	const handleDragEnd = (event: { active: { id: string }; over: { id: string } | null }) => {
+	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event;
+		if (!over) return;
+		const activeId = String(active.id);
+		const overId = String(over.id);
 
-		if (active.id !== over.id) {
+		if (activeId !== overId) {
 			setSelectedProducts((items) => {
-				const oldIndex = items.findIndex((i) => i.id === active.id);
-				const newIndex = items.findIndex((i) => i.id === over.id);
+				const oldIndex = items.findIndex((i) => i.id === activeId);
+				const newIndex = items.findIndex((i) => i.id === overId);
 				return arrayMove(items, oldIndex, newIndex);
 			});
 		}
@@ -211,7 +219,14 @@ export function CollectionForm({ collection, initialProducts = [] }: CollectionF
 				setShowSearchResults(true);
 				try {
 					const results = await searchProducts(productSearch);
-					setSearchResults(results);
+					setSearchResults(
+						results.map((result) => ({
+							id: result.id,
+							name: result.name,
+							images: result.images || [],
+							price: result.price || "0",
+						})),
+					);
 				} catch (error) {
 					console.error("Search failed", error);
 				} finally {
@@ -226,7 +241,7 @@ export function CollectionForm({ collection, initialProducts = [] }: CollectionF
 		return () => clearTimeout(timer);
 	}, [productSearch]);
 
-	const toggleProduct = (product: { id: string; name: string; price: string | null }) => {
+	const toggleProduct = (product: CollectionProduct) => {
 		setSelectedProducts((prev) =>
 			prev.find((p) => p.id === product.id) ? prev.filter((p) => p.id !== product.id) : [...prev, product],
 		);

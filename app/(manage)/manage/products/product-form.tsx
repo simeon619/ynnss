@@ -29,6 +29,30 @@ interface ProductFormProps {
 	showOrganisation?: boolean;
 }
 
+type VariantRow = {
+	id?: string;
+	name: string;
+	combination: Record<string, unknown>;
+	price: string | number;
+	stock: string | number;
+	sku?: string;
+	width?: string | number;
+	height?: string | number;
+	depth?: string | number;
+	weight?: string | number;
+	costPrice?: string | number;
+	compareAtPrice?: string | number;
+	barcode?: string;
+	images?: string[];
+	attributes?: { key: string; value: string }[];
+	shippable?: boolean;
+	isEnabled: boolean;
+	isDefault?: boolean;
+	selected: boolean;
+	manageInventory?: boolean;
+	[key: string]: unknown;
+};
+
 export function ProductForm({ product, categories, collections, title, description }: ProductFormProps) {
 	const router = useRouter();
 	const [isPending, startTransition] = useTransition();
@@ -59,7 +83,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 		return product?.variants ? reconstructOptions(product.variants) : [];
 	});
 
-	const [variants, setVariants] = useState<Record<string, unknown>[]>(() => {
+	const [variants, setVariants] = useState<VariantRow[]>(() => {
 		if (!product?.variants || product.variants.length === 0) {
 			return [
 				{
@@ -97,6 +121,9 @@ export function ProductForm({ product, categories, collections, title, descripti
 			costPrice: v.costPrice || "",
 			compareAtPrice: v.compareAtPrice || "",
 			barcode: v.barcode || "",
+			sku: v.sku || "",
+			images: v.images || [],
+			attributes: v.attributes || [],
 			shippable: v.shippable !== false,
 			isEnabled: v.isEnabled !== false,
 			isDefault: false,
@@ -212,10 +239,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 		updateOptionValues(optionIdx, newValues);
 	};
 
-	const regenerateVariants = (
-		currentOptions: Option[],
-		currentVariants: Record<string, unknown>[] = variants,
-	) => {
+	const regenerateVariants = (currentOptions: Option[], currentVariants: VariantRow[] = variants) => {
 		if (currentOptions.length === 0) {
 			const existingDefault = currentVariants.find((v) => v.isDefault);
 			if (existingDefault) {
@@ -354,7 +378,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 		const newVariants = variants.map((v) => {
 			const shouldUpdate = !hasSelection || v.selected;
 			if (!shouldUpdate) return v;
-			if (field === "selected") return { ...v, [field]: value };
+			if (field === "selected") return { ...v, [field]: value === true };
 			const currentVal = v[field as keyof typeof v];
 			const isDefined =
 				field === "price"
@@ -362,7 +386,12 @@ export function ProductForm({ product, categories, collections, title, descripti
 					: field === "stock"
 						? currentVal !== "" && currentVal !== 0 && currentVal !== undefined && v.manageInventory
 						: false;
-			if (field === "stock") return { ...v, [field]: value, manageInventory: true };
+			if (field === "stock")
+				return {
+					...v,
+					[field]: typeof value === "number" || typeof value === "string" ? value : 0,
+					manageInventory: true,
+				};
 			if (isDefined && field !== "attributes") return v;
 			return { ...v, [field]: value };
 		});
@@ -881,36 +910,36 @@ export function ProductForm({ product, categories, collections, title, descripti
 			</div>
 
 			<VariantDetailsSheet
-				variant={editingVariantIdx !== null ? variants[editingVariantIdx] : null}
+				variant={editingVariantIdx !== null ? (variants[editingVariantIdx] as Record<string, unknown>) : {}}
 				isOpen={editingVariantIdx !== null}
 				onClose={() => setEditingVariantIdx(null)}
-				onUpdate={(updatedVariant: unknown) => {
+				onUpdate={(updatedVariant) => {
 					if (editingVariantIdx !== null) {
 						const newVariants = [...variants];
-						newVariants[editingVariantIdx] = updatedVariant;
+						newVariants[editingVariantIdx] = updatedVariant as VariantRow;
 						setVariants(newVariants);
 					}
 				}}
 				hasPrev={editingVariantIdx !== null && editingVariantIdx > 0}
 				hasNext={editingVariantIdx !== null && editingVariantIdx < variants.length - 1}
-				onPrev={(updatedVariant: unknown) => {
+				onPrev={(updatedVariant) => {
 					if (editingVariantIdx !== null && editingVariantIdx > 0) {
 						const newVariants = [...variants];
-						newVariants[editingVariantIdx] = updatedVariant;
+						newVariants[editingVariantIdx] = updatedVariant as VariantRow;
 						setVariants(newVariants);
 						setEditingVariantIdx(editingVariantIdx - 1);
 					}
 				}}
-				onNext={(updatedVariant: unknown) => {
+				onNext={(updatedVariant) => {
 					if (editingVariantIdx !== null && editingVariantIdx < variants.length - 1) {
 						const newVariants = [...variants];
-						newVariants[editingVariantIdx] = updatedVariant;
+						newVariants[editingVariantIdx] = updatedVariant as VariantRow;
 						setVariants(newVariants);
 						setEditingVariantIdx(editingVariantIdx + 1);
 					}
 				}}
-				onSyncToAll={(attributes: unknown) => {
-					setVariants((prev) => prev.map((v) => ({ ...v, attributes })));
+				onSyncToAll={(attributes) => {
+					setVariants((prev) => prev.map((variant) => ({ ...variant, attributes })));
 				}}
 			/>
 		</form>

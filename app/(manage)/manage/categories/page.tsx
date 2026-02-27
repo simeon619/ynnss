@@ -12,7 +12,7 @@ export default async function CategoriesPage() {
 	const _storeId = await getActiveStoreContext();
 	if (!_storeId) throw new Error("No active store");
 	const db = await getTenantDb(_storeId);
-	const allCategories = await (await getTenantDb((await getActiveStoreContext())!))
+	const allCategories = await db
 		.select({
 			id: categories.id,
 			name: categories.name,

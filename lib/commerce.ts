@@ -1,5 +1,4 @@
-import { Commerce } from "commerce-kit";
+import { LocalCommerceImplementation } from "./local-commerce";
 
-export const commerce = Commerce({
-	token: process.env.YNS_API_KEY,
-});
+// biome-ignore lint/suspicious/noExplicitAny: temporary compatibility facade during local-commerce migration
+export const commerce: any = LocalCommerceImplementation;

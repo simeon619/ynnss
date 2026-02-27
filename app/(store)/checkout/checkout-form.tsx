@@ -30,7 +30,12 @@ interface ShippingRate {
 	name: string;
 	price: string;
 	deliveryTime?: string;
-	pickupPoint?: { address: string; city: string; openingHours?: string };
+	pickupPoint?: {
+		address: string;
+		city: string;
+		openingHours?: string;
+		coordinates?: { lat: number; lng: number };
+	};
 	minAmount?: string;
 }
 
@@ -256,7 +261,7 @@ export function CheckoutForm({ cart, subtotal }: CheckoutFormProps) {
 									value={selectedRate?.id}
 									onValueChange={(val) => {
 										const rate = shippingRates.find((r) => r.id === val);
-										setSelectedRate(rate);
+										setSelectedRate(rate ?? null);
 									}}
 									className="gap-3"
 								>

@@ -16,7 +16,7 @@ import {
 	X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { safe } from "safe-try";
+import { try_ as safe } from "safe-try";
 import { ImageUpload } from "@/components/image-upload";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,30 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-type VariantData = Record<string, unknown>;
+interface VariantAttribute {
+	key: string;
+	value: string;
+}
+
+interface VariantData {
+	name?: string;
+	isEnabled?: boolean;
+	images?: string[];
+	digitalFileUrl?: string | null;
+	price?: string;
+	costPrice?: string;
+	compareAtPrice?: string;
+	sku?: string;
+	barcode?: string;
+	manageInventory?: boolean;
+	stock?: string | number;
+	shippable?: boolean;
+	weight?: string;
+	width?: string;
+	height?: string;
+	depth?: string;
+	attributes?: VariantAttribute[];
+}
 
 interface VariantDetailsSheetProps {
 	variant: VariantData;
@@ -67,9 +90,7 @@ export function VariantDetailsSheet({
 		}
 	}, [isOpen, localVariant?.manageInventory]);
 
-	if (!localVariant) return null;
-
-	const handleChange = (field: string, value: unknown) => {
+	const handleChange = <K extends keyof VariantData>(field: K, value: VariantData[K]) => {
 		setLocalVariant((prev) => ({ ...prev, [field]: value }));
 	};
 
@@ -127,7 +148,7 @@ export function VariantDetailsSheet({
 						<Checkbox
 							id="isEnabled"
 							checked={localVariant.isEnabled}
-							onCheckedChange={(checked) => handleChange("isEnabled", checked)}
+							onCheckedChange={(checked) => handleChange("isEnabled", checked === true)}
 							className="h-5 w-5 data-[state=checked]:bg-black border-2 border-black rounded-none"
 						/>
 						<Label htmlFor="isEnabled" className="text-sm font-bold cursor-pointer uppercase">
@@ -142,10 +163,10 @@ export function VariantDetailsSheet({
 							<h3 className="text-sm font-black uppercase">Images</h3>
 						</div>
 						<ImageUpload
-							value={localVariant.images || []}
+							value={localVariant.images ?? []}
 							onChange={(images) => handleChange("images", images)}
 							onRemove={(url) => {
-								const updated = (localVariant.images || []).filter((img: string) => img !== url);
+								const updated = (localVariant.images ?? []).filter((img) => img !== url);
 								handleChange("images", updated);
 							}}
 						/>
@@ -364,7 +385,7 @@ export function VariantDetailsSheet({
 						<div className="flex items-center gap-3 p-2 border-2 border-black bg-white">
 							<Switch
 								id="shippable"
-								checked={localVariant.shippable}
+								checked={localVariant.shippable ?? false}
 								onCheckedChange={(checked) => handleChange("shippable", checked)}
 								className="data-[state=checked]:bg-black border-2 border-black"
 							/>
@@ -432,14 +453,14 @@ export function VariantDetailsSheet({
 							<h3 className="text-sm font-black uppercase">Attributs</h3>
 						</div>
 						<div className="space-y-2">
-							{((localVariant.attributes as { key: string; value: string }[]) || []).map((attr, index) => (
+							{(localVariant.attributes ?? []).map((attr, index) => (
 								<div key={index} className="flex items-center gap-2 p-2 border-2 border-black bg-white">
 									<div className="flex-1 grid grid-cols-2 gap-2">
 										<Input
 											placeholder="Clé"
 											value={attr.key}
 											onChange={(e) => {
-												const updated = [...(localVariant.attributes || [])];
+												const updated = [...(localVariant.attributes ?? [])];
 												updated[index].key = e.target.value;
 												handleChange("attributes", updated);
 											}}
@@ -449,7 +470,7 @@ export function VariantDetailsSheet({
 											placeholder="Valeur"
 											value={attr.value}
 											onChange={(e) => {
-												const updated = [...(localVariant.attributes || [])];
+												const updated = [...(localVariant.attributes ?? [])];
 												updated[index].value = e.target.value;
 												handleChange("attributes", updated);
 											}}
@@ -460,7 +481,7 @@ export function VariantDetailsSheet({
 										type="button"
 										className="p-2 text-black hover:bg-black hover:text-white"
 										onClick={() => {
-											const updated = [...(localVariant.attributes || [])];
+											const updated = [...(localVariant.attributes ?? [])];
 											updated.splice(index, 1);
 											handleChange("attributes", updated);
 										}}
@@ -473,7 +494,7 @@ export function VariantDetailsSheet({
 								type="button"
 								className="w-full py-2 text-sm font-bold border-2 border-black border-dashed hover:bg-black hover:text-white"
 								onClick={() => {
-									const updated = [...(localVariant.attributes || []), { key: "", value: "" }];
+									const updated = [...(localVariant.attributes ?? []), { key: "", value: "" }];
 									handleChange("attributes", updated);
 								}}
 							>

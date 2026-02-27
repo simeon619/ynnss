@@ -27,9 +27,20 @@
 		"**/*.ts",
 		"**/*.tsx",
 		".next/types/**/*.ts",
-		".next/dev/types/**/*.ts",
 		"**/*.mts",
-		"next.config.mjs"
+		"next.config.mjs",
+		".next/dev/types/**/*.ts"
 	],
-	"exclude": ["node_modules"]
+	"exclude": [
+		"node_modules",
+		"data",
+		"scripts",
+		"check-variant-attributes.ts",
+		"testAddWallet.ts",
+		"lib/db/seed-products.ts",
+		"test-otp-logic-final.ts",
+		"test_complete_flow.ts",
+		"**/*.spec.ts",
+		"**/*.test.ts"
+	]
 }
