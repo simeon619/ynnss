@@ -1,39 +1,11 @@
 import { AlertCircle, Clock, DollarSign, Percent, PiggyBank, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { formatMoney } from "@/lib/money";
+import { getDashboardStats } from "./actions";
 import { RevenueChart } from "./revenue-chart";
 
 export default async function DashboardPage() {
-	// Hardcoded test data - replace with actual stats
-	const stats = {
-		totalRevenue: 2500000,
-		revenueTrend: 25.5,
-		totalProfit: 875000,
-		profitTrend: 32.0,
-		profitMargin: 35.0,
-		marginTrend: 5.2,
-		totalOrders: 342,
-		ordersTrend: 18.0,
-		totalCost: 1625000,
-		lowStockCount: 7,
-		recentOrders: [],
-		revenueData: [
-			{ name: "01/02", total: 320000, profit: 112000 },
-			{ name: "03/02", total: 180000, profit: 63000 },
-			{ name: "05/02", total: 540000, profit: 189000 },
-			{ name: "07/02", total: 290000, profit: 101500 },
-			{ name: "09/02", total: 610000, profit: 213500 },
-			{ name: "11/02", total: 420000, profit: 147000 },
-			{ name: "13/02", total: 750000, profit: 262500 },
-			{ name: "15/02", total: 380000, profit: 133000 },
-			{ name: "17/02", total: 920000, profit: 322000 },
-			{ name: "19/02", total: 560000, profit: 196000 },
-			{ name: "21/02", total: 680000, profit: 238000 },
-			{ name: "23/02", total: 430000, profit: 150500 },
-			{ name: "25/02", total: 810000, profit: 283500 },
-			{ name: "26/02", total: 340000, profit: 119000 },
-		],
-	};
+	const stats = await getDashboardStats();
 
 	const revTrendNum = Number(stats.revenueTrend);
 	const revTrendType = revTrendNum >= 0 ? "up" : "down";
@@ -85,7 +57,7 @@ export default async function DashboardPage() {
 					icon={<ShoppingCart size={20} />}
 					trend={`${ordersTrendNum >= 0 ? "+" : ""}${stats.ordersTrend}%`}
 					trendType={ordersTrendType}
-					color="bg-yellow-400"
+					color="bg-white"
 				/>
 				<KpiCard
 					title="Coûts"
@@ -132,82 +104,59 @@ export default async function DashboardPage() {
 						<h2 className="text-lg font-black text-black uppercase tracking-tight">Commandes Récentes</h2>
 						<Link
 							href="/manage/orders"
-							className="text-xs uppercase font-black border-2 border-black px-3 py-1 bg-yellow-400 text-black hover:bg-black hover:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+							className="text-xs uppercase font-black border-2 border-black px-3 py-1 bg-black text-white hover:bg-white hover:text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
 						>
 							TOUT VOIR
 						</Link>
 					</div>
 					<div className="flex flex-col divide-y-2 divide-black overflow-auto">
-						{[
-							{
-								id: "1",
-								customerEmail: "jean.doe@email.com",
-								lookup: "ORD-001",
-								subtotal: "125000",
-								status: "payé",
-							},
-							{
-								id: "2",
-								customerEmail: "marie.durand@email.com",
-								lookup: "ORD-002",
-								subtotal: "89000",
-								status: "attente",
-							},
-							{
-								id: "3",
-								customerEmail: "paul.martin@email.com",
-								lookup: "ORD-003",
-								subtotal: "245000",
-								status: "payé",
-							},
-							{
-								id: "4",
-								customerEmail: "sophie.bernard@email.com",
-								lookup: "ORD-004",
-								subtotal: "67000",
-								status: "expédié",
-							},
-							{
-								id: "5",
-								customerEmail: "luc.dubois@email.com",
-								lookup: "ORD-005",
-								subtotal: "156000",
-								status: "payé",
-							},
-						].map((order) => (
-							<div
-								key={order.id}
-								className="flex items-center justify-between px-4 py-4 hover:bg-black hover:text-white group"
-							>
-								<div className="flex items-center gap-3 min-w-0">
-									<div className="w-10 h-10 flex items-center justify-center border-2 border-black bg-black shrink-0 group-hover:bg-white">
-										<Clock size={18} strokeWidth={3} className="text-white group-hover:text-black" />
-									</div>
-									<div className="min-w-0">
-										<p className="text-sm font-black text-black uppercase truncate leading-none mb-1">
-											{order.customerEmail.split("@")[0]}
-										</p>
-										<p className="text-xs font-mono font-bold text-black uppercase">#{order.lookup}</p>
-									</div>
-								</div>
-								<div className="flex flex-col items-end gap-1 shrink-0 pl-4">
-									<div className="text-sm font-black font-mono">
-										{formatMoney({ amount: order.subtotal, currency: "XOF", locale: "fr-CI" })}
-									</div>
-									<span
-										className={`px-2 py-0.5 border-2 border-black font-black text-[10px] uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-											order.status === "payé"
-												? "bg-black text-white"
-												: order.status === "expédié"
-													? "bg-black text-white"
-													: "bg-yellow-400 text-black"
-										}`}
-									>
-										{order.status}
-									</span>
-								</div>
+						{stats.recentOrders.length === 0 ? (
+							<div className="flex flex-col items-center justify-center py-16 text-center px-4">
+								<ShoppingCart size={32} className="mb-3 text-black" strokeWidth={2} />
+								<p className="text-xs font-black uppercase tracking-widest text-black">Aucune commande</p>
+								<p className="text-xs font-mono text-black mt-1">Les nouvelles commandes apparaîtront ici.</p>
 							</div>
-						))}
+						) : (
+							stats.recentOrders.map((order) => (
+								<Link
+									key={order.id}
+									href={`/manage/orders/${order.id}`}
+									className="flex items-center justify-between px-4 py-4 hover:bg-black hover:text-white group"
+								>
+									<div className="flex items-center gap-3 min-w-0">
+										<div className="w-10 h-10 flex items-center justify-center border-2 border-black bg-black shrink-0 group-hover:bg-white">
+											<Clock size={18} strokeWidth={3} className="text-white group-hover:text-black" />
+										</div>
+										<div className="min-w-0">
+											<p className="text-sm font-black text-black group-hover:text-white uppercase truncate leading-none mb-1">
+												{order.customerEmail ? order.customerEmail.split("@")[0] : "Client"}
+											</p>
+											<p className="text-xs font-mono font-bold text-black group-hover:text-white uppercase">
+												#{order.lookup || order.id.slice(0, 8).toUpperCase()}
+											</p>
+										</div>
+									</div>
+									<div className="flex flex-col items-end gap-1 shrink-0 pl-4">
+										<div className="text-sm font-black font-mono group-hover:text-white">
+											{formatMoney({
+												amount: (order.subtotal || "0").toString(),
+												currency: "XOF",
+												locale: "fr-CI",
+											})}
+										</div>
+										<span
+											className={`px-2 py-0.5 border-2 border-black font-black text-[10px] uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+												order.status === "paid" || order.status === "shipped"
+													? "bg-black text-white"
+													: "bg-white text-black"
+											}`}
+										>
+											{order.status}
+										</span>
+									</div>
+								</Link>
+							))
+						)}
 					</div>
 					<div className="p-4 mt-auto border-t-4 border-black bg-white">
 						<p className="text-center font-black text-xs uppercase tracking-[0.2em] text-black">
@@ -240,13 +189,21 @@ function KpiCard({
 			className={`border-4 border-black p-4 flex flex-col justify-between h-32 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${color}`}
 		>
 			<div className="flex items-start justify-between">
-				<span className="text-xs font-black uppercase tracking-wider">{title}</span>
-				<div className="p-1 border-2 border-black bg-white">{icon}</div>
+				<span
+					className={`text-xs font-black uppercase tracking-wider ${color === "bg-black" ? "text-white" : "text-black"}`}
+				>
+					{title}
+				</span>
+				<div
+					className={`p-1 border-2 ${color === "bg-black" ? "border-white bg-black" : "border-black bg-white"}`}
+				>
+					{icon}
+				</div>
 			</div>
 
 			<div className="flex items-end justify-between mt-2">
 				<div
-					className="text-xl md:text-2xl font-black truncate leading-none"
+					className={`text-xl md:text-2xl font-black truncate leading-none ${color === "bg-black" ? "text-white" : "text-black"}`}
 					style={{ fontVariantNumeric: "tabular-nums" }}
 				>
 					{value}
