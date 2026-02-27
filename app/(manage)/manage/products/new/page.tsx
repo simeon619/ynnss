@@ -19,11 +19,15 @@ export default async function NewProductPage() {
 	const { categories, collections } = await ProductData();
 
 	return (
-		<ProductForm
-			title="AJOUTER UN PRODUIT"
-			description="Créez un nouveau produit dans votre catalogue."
-			categories={categories}
-			collections={collections}
-		/>
+		<div className="grid grid-cols-9 gap-6">
+			<div className="col-span-6">
+				<ProductForm
+					title="AJOUTER UN PRODUIT"
+					description="Créez un nouveau produit dans votre catalogue."
+					categories={categories}
+					collections={collections}
+				/>
+			</div>
+		</div>
 	);
 }
