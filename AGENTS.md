@@ -5,145 +5,184 @@ Your Next Store — e-commerce app built with Next.js App Router + Commerce Kit 
 ## Commands
 
 ```bash
-bun dev           # Dev server (port 3000)
-bun run build     # Production build
-bun start         # Production server
-bun run lint      # Biome lint (--write to auto-fix)
-bun run format    # Biome format
-bun test          # Run tests (bun:test)
-tsgo --noEmit     # Type check
+# Development
+bun dev              # Dev server (port 3000)
+bun run build        # Production build
+bun start            # Production server
+
+# Linting & Formatting
+bun run lint         # Biome lint (checks for errors)
+bun run lint --write # Biome lint with auto-fix
+bun run format       # Biome format
+
+# Testing
+bun test             # Run all tests
+bun test <file>      # Run single test file
+bun test --watch     # Run tests in watch mode
+bun test -t "name"   # Run tests matching name pattern
+
+# Type Checking
+bun run typecheck    # Type check (alias for tsgo --noEmit)
+tsgo --noEmit        # Type check
+
+# Database
+bun run db:generate:global   # Generate global DB
+bun run db:generate:tenant     # Generate tenant DB
+bun run db:migrate:global      # Run global migrations
+bun run db:migrate:tenants     # Run tenant migrations
 ```
 
-## Key Files & Directories
+## Code Style Guidelines
 
+### General Rules (Biome-enforced)
+- **Line width**: 110 characters
+- **No default exports** except: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `default.tsx`
+- **No `any` types** - use proper types or type inference
+- **No `for...of` / `forEach`** for mutations - use `map`/`filter`/`reduce`
+- **Use `as const`** for literal objects
+- **Use template literals** over string concatenation
+
+### Imports (grouped order)
+```typescript
+import { useState } from "react";              // React/Next
+import Link from "next/link";                   // Next.js
+import { Button } from "@/components/ui/button"; // Components
+import { formatMoney } from "@/lib/money";      // Lib
+import { cn } from "@/lib/utils";               // Utils
+import { safe } from "safe-try";                // Third-party
 ```
-app/                  # Pages, layouts, actions (App Router)
-components/ui/        # Shadcn UI components (50+)
-lib/commerce.ts       # Commerce API client
-lib/money.ts          # Currency formatting (formatMoney)
-lib/utils.ts          # Utilities
-biome.json            # Lint/format config
-next.config.mjs       # Next.js config
-hooks/                # Custom React hooks
+
+### Naming Conventions
+- **Components**: PascalCase (`ProductCard`)
+- **Functions**: camelCase (`formatPrice`)
+- **Constants**: SCREAMING_SNAKE_CASE
+- **Files**: kebab-case (`product-form.tsx`)
+- **Server Actions**: suffix with `Action` (`createProductAction`)
+
+### Types
+- Avoid explicit return type annotations - let TypeScript infer
+- Use `interface` for object shapes, `type` for unions/intersections
+- Never use `any` - use `unknown` if necessary, then narrow
+
+### Error Handling
+```typescript
+import { safe } from "safe-try";
+const [error, result] = await safe(someAsyncFunction());
+if (error || !result) {
+  return <div>Error: {error.message}</div>;
+}
+// use result
 ```
 
-## Project Patterns
+## Brutalist UI Design
+- Bold black borders (`border-2` or `border-4 border-black`)
+- High contrast (black/white with accent colors)
+- Strong shadows (`shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`)
+- Uppercase bold text for labels
+- No/minimal rounded corners (`rounded-sm` or `rounded-lg`)
+- `font-black` for headings, `font-mono` for numbers/code
+- `h-10` for inputs, `h-12` for large inputs
+- Use `tabular-nums` for numeric displays
 
-- Use `safe-try` for error handling: `const [error, result] = await safe(...)`
-- Format prices with `formatMoney` from `lib/money.ts`
-- Use functional array methods (`map`, `filter`, `reduce`), not loops
-- No `any` types; rely on type inference; minimal return type annotations
-- **Always quote paths** with special characters in shell commands: `rg "term" "app/(auth)/login"`
+## GLOBAL DESIGN RULE: BRUTALIST ECOMMERCE UI
 
-## Biome Rules
+All UI components must follow a strict brutalist web aesthetic.
 
-Avoid: default exports, `any`, `for...of`, `forEach` for mutations, missing hook deps, unnecessary type annotations, function names ending with "Action" (unless server action).
+### Core Principles (Avoid)
+- No rounded corners (`rounded-none` or no border-radius)
+- No soft shadows (use hard shadows: `shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`)
+- No gradients
+- No glassmorphism
+- No neumorphism
+- No pastel colors
 
-Default export exceptions (Biome-allowed): `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`.
+### Visual Style (Required)
+- High contrast: black, white, red, blue, neon green only
+- Thick borders: `border-2` or `border-4 border-black`
+- Flat buttons, system fonts only
+- Large bold typography: `font-black`, `text-xl`+
+- Underlined links: `underline`
+- Square product images
+- Hard section separations with visible borders
 
-Prefer: named exports, `map`/`filter`/`reduce`, type inference, `as const`, template literals.
+### Buttons
+- ALL CAPS text: `uppercase`
+- Thick border: `border-2 border-black`
+- Hover = color inversion only (black→white, white→black)
+- No smooth animations
+
+### Cards
+- No soft shadows (use hard shadows)
+- Sharp rectangular blocks
+- Visible structure with borders
+- Bold price display with `font-black font-mono`
+
+### Layout
+- Asymmetrical layouts allowed
+- Clear hierarchy using scale
+- No decorative elements
+- No fancy icon libraries (use Lucide minimal)
+
+### UX
+- Must remain usable and conversion-oriented
+- Clear CTA buttons
+- Clear product information
+
+If any UI element violates brutalist rules, refactor it immediately.
+
+## Local Environment Setup
+```bash
+# Start services + configure S3 + launch app
+chmod +x scripts/launch.sh && ./scripts/launch.sh
+
+# Manual: docker-compose up -d
+# Manual: npx tsx scripts/setup-garage.ts
+
+# .env.local required:
+AWS_REGION=garage
+AWS_BUCKET_NAME=delivery
+AWS_ENDPOINT=http://127.0.0.1:3900
+YNS_API_KEY=<your-key>
+```
+
+## Key Directories
+```
+app/           # Pages, layouts, actions (App Router)
+components/ui/ # Shadcn UI components (50+)
+lib/           # Commerce API, money, utils
+hooks/         # Custom React hooks
+```
 
 ## Commerce Kit SDK
-
 ```tsx
-// Product browsing
-const products = await commerce.productBrowse({
-  active: true, limit: 12, offset: 0,
-  // search: "query", category: "id", tags: ["tag"]
-});
-
-// Product details (accepts ID or slug)
+const products = await commerce.productBrowse({ active: true, limit: 12 });
 const product = await commerce.productGet({ idOrSlug: productId });
-// product.variants[].{id, price (minor units string), stock, images, attributes}
-
-// Cart
-const cart = await commerce.cartUpsert({ cartId, variantId: "v-123", quantity: 1 });
-const cart = await commerce.cartGet({ cartId });
+const cart = await commerce.cartUpsert({ cartId, variantId, quantity });
 ```
-
-## Code Examples
-
-### Page with caching
-```tsx
-// app/search/page.tsx
-import { commerce } from "@/lib/commerce";
-import { SearchResults } from "./search-results";
-
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>;
-}) {
-  "use cache";
-  const { q } = await searchParams;
-  const products = q
-    ? await commerce.productBrowse({ search: q, active: true })
-    : { data: [] };
-  return <SearchResults products={products.data} query={q} />;
-}
-```
-
-### Error handling
-```tsx
-import { commerce } from "@/lib/commerce";
-import { formatMoney } from "@/lib/money";
-import { safe } from "safe-try";
-
-const [error, result] = await safe(
-  commerce.productGet({ idOrSlug: productId })
-);
-if (error || !result) {
-  return <div>Product not found</div>;
-}
-const price = formatMoney({
-  amount: result.variants[0].price,
-  currency: "USD",
-  locale: "en-US",
-});
-```
-
-### Unit test (bun:test)
-```typescript
-import { test, expect } from "bun:test";
-import { formatMoney } from "@/lib/money";
-
-test("formatMoney handles USD correctly", () => {
-  const result = formatMoney({ amount: "1999", currency: "USD", locale: "en-US" });
-  expect(result).toBe("$19.99");
-});
-```
-
-## Adding UI Components
-
-Check `components/ui/` first. Install missing Shadcn components with `npx shadcn@latest add [name]`. New components should use Radix primitives, Tailwind CSS, `cva` for variants, named exports.
 
 ## Validation Checklist
-
 - [ ] `tsgo --noEmit` — no type errors
 - [ ] `bun run lint` — no lint errors
 - [ ] `bun run format` — code formatted
 - [ ] `bun test` — tests pass
 - [ ] `bun run build` — build succeeds
-- [ ] `bun dev` — runs without errors, feature works in browser
-- [ ] No console errors, images load, responsive layout
-- [ ] No hardcoded secrets; env vars set (`.env.local` / Vercel dashboard)
-
-Required env: `YNS_API_KEY`
+- [ ] No console errors, images load
 
 ## Troubleshooting
+| Error | Fix |
+|-------|-----|
+| `variants of undefined` | Use optional chaining (`product?.variants`) |
+| `Missing env.YNS_API_KEY` | Create `.env.local`, restart dev server |
+| `noDefaultExport` | Use named export |
+| `BigInt literal` | Use `BigInt(0)` instead of `0n` |
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Cannot read property 'variants' of undefined` | Product data missing | Use optional chaining (`product?.variants`) |
-| `Missing env.YNS_API_KEY` | Env not loaded | Create `.env.local`, restart dev server |
-| `noDefaultExport` | Default export in non-special file | Use named export |
-| `BigInt literal syntax` | Using `0n` with ES2020 | Use `BigInt(0)` |
+## Agent Notes
+- Explore: `lib/commerce.ts`, `app/layout.tsx `"use server"`/`"use cache`, search"`
+- Always quote paths with special characters: `rg "term" "app/(auth)/login"`
+- Use `safe-try` for error handling, `formatMoney` for prices
+- Use functional array methods (`map`/`filter`/`reduce`), not loops
 
-## Agent Workflow Notes
+## Token Optimization
 
-- **Explore agent**: Start with `lib/commerce.ts`, `app/layout.tsx`, `app/page.tsx`. Search `"use server"`/`"use cache"` for patterns.
-- **Plan agent**: Check existing code first. Map to: routes (`app/`), API (`lib/commerce.ts`), UI (`components/ui/`), actions (`actions.ts`). Consider caching and server vs client components.
-- **Implementation agent**: Validate with commands above before and after changes. Follow Biome rules, reuse existing UI components.
-- **Frontend design**: Use `frontend-design:frontend-design` skill for UI-heavy tasks.
-
-<!-- NEXT-AGENTS-MD-START -->[Next.js Docs Index]|root: ./.next-docs|STOP. What you remember about Next.js is WRONG for this project. Always search docs and read before any task.|If docs missing, run this command first: npx @next/codemod agents-md --output AGENTS.md|01-app:{04-glossary.mdx}|01-app/01-getting-started:{01-installation.mdx,02-project-structure.mdx,03-layouts-and-pages.mdx,04-linking-and-navigating.mdx,05-server-and-client-components.mdx,06-cache-components.mdx,07-fetching-data.mdx,08-updating-data.mdx,09-caching-and-revalidating.mdx,10-error-handling.mdx,11-css.mdx,12-images.mdx,13-fonts.mdx,14-metadata-and-og-images.mdx,15-route-handlers.mdx,16-proxy.mdx,17-deploying.mdx,18-upgrading.mdx}|01-app/02-guides:{analytics.mdx,authentication.mdx,backend-for-frontend.mdx,caching.mdx,ci-build-caching.mdx,content-security-policy.mdx,css-in-js.mdx,custom-server.mdx,data-security.mdx,debugging.mdx,draft-mode.mdx,environment-variables.mdx,forms.mdx,incremental-static-regeneration.mdx,instrumentation.mdx,internationalization.mdx,json-ld.mdx,lazy-loading.mdx,local-development.mdx,mcp.mdx,mdx.mdx,memory-usage.mdx,multi-tenant.mdx,multi-zones.mdx,open-telemetry.mdx,package-bundling.mdx,prefetching.mdx,production-checklist.mdx,progressive-web-apps.mdx,public-static-pages.mdx,redirecting.mdx,sass.mdx,scripts.mdx,self-hosting.mdx,single-page-applications.mdx,static-exports.mdx,tailwind-v3-css.mdx,third-party-libraries.mdx,videos.mdx}|01-app/02-guides/migrating:{app-router-migration.mdx,from-create-react-app.mdx,from-vite.mdx}|01-app/02-guides/testing:{cypress.mdx,jest.mdx,playwright.mdx,vitest.mdx}|01-app/02-guides/upgrading:{codemods.mdx,version-14.mdx,version-15.mdx,version-16.mdx}|01-app/03-api-reference:{07-edge.mdx,08-turbopack.mdx}|01-app/03-api-reference/01-directives:{use-cache-private.mdx,use-cache-remote.mdx,use-cache.mdx,use-client.mdx,use-server.mdx}|01-app/03-api-reference/02-components:{font.mdx,form.mdx,image.mdx,link.mdx,script.mdx}|01-app/03-api-reference/03-file-conventions/01-metadata:{app-icons.mdx,manifest.mdx,opengraph-image.mdx,robots.mdx,sitemap.mdx}|01-app/03-api-reference/03-file-conventions:{default.mdx,dynamic-routes.mdx,error.mdx,forbidden.mdx,instrumentation-client.mdx,instrumentation.mdx,intercepting-routes.mdx,layout.mdx,loading.mdx,mdx-components.mdx,not-found.mdx,page.mdx,parallel-routes.mdx,proxy.mdx,public-folder.mdx,route-groups.mdx,route-segment-config.mdx,route.mdx,src-folder.mdx,template.mdx,unauthorized.mdx}|01-app/03-api-reference/04-functions:{after.mdx,cacheLife.mdx,cacheTag.mdx,connection.mdx,cookies.mdx,draft-mode.mdx,fetch.mdx,forbidden.mdx,generate-image-metadata.mdx,generate-metadata.mdx,generate-sitemaps.mdx,generate-static-params.mdx,generate-viewport.mdx,headers.mdx,image-response.mdx,next-request.mdx,next-response.mdx,not-found.mdx,permanentRedirect.mdx,redirect.mdx,refresh.mdx,revalidatePath.mdx,revalidateTag.mdx,unauthorized.mdx,unstable_cache.mdx,unstable_noStore.mdx,unstable_rethrow.mdx,updateTag.mdx,use-link-status.mdx,use-params.mdx,use-pathname.mdx,use-report-web-vitals.mdx,use-router.mdx,use-search-params.mdx,use-selected-layout-segment.mdx,use-selected-layout-segments.mdx,userAgent.mdx}|01-app/03-api-reference/05-config/01-next-config-js:{adapterPath.mdx,allowedDevOrigins.mdx,appDir.mdx,assetPrefix.mdx,authInterrupts.mdx,basePath.mdx,browserDebugInfoInTerminal.mdx,cacheComponents.mdx,cacheHandlers.mdx,cacheLife.mdx,compress.mdx,crossOrigin.mdx,cssChunking.mdx,devIndicators.mdx,distDir.mdx,env.mdx,expireTime.mdx,exportPathMap.mdx,generateBuildId.mdx,generateEtags.mdx,headers.mdx,htmlLimitedBots.mdx,httpAgentOptions.mdx,images.mdx,incrementalCacheHandlerPath.mdx,inlineCss.mdx,logging.mdx,mdxRs.mdx,onDemandEntries.mdx,optimizePackageImports.mdx,output.mdx,pageExtensions.mdx,poweredByHeader.mdx,productionBrowserSourceMaps.mdx,proxyClientMaxBodySize.mdx,reactCompiler.mdx,reactMaxHeadersLength.mdx,reactStrictMode.mdx,redirects.mdx,rewrites.mdx,sassOptions.mdx,serverActions.mdx,serverComponentsHmrCache.mdx,serverExternalPackages.mdx,staleTimes.mdx,staticGeneration.mdx,taint.mdx,trailingSlash.mdx,transpilePackages.mdx,turbopack.mdx,turbopackFileSystemCache.mdx,typedRoutes.mdx,typescript.mdx,urlImports.mdx,useLightningcss.mdx,viewTransition.mdx,webVitalsAttribution.mdx,webpack.mdx}|01-app/03-api-reference/05-config:{02-typescript.mdx,03-eslint.mdx}|01-app/03-api-reference/06-cli:{create-next-app.mdx,next.mdx}|02-pages/01-getting-started:{01-installation.mdx,02-project-structure.mdx,04-images.mdx,05-fonts.mdx,06-css.mdx,11-deploying.mdx}|02-pages/02-guides:{analytics.mdx,authentication.mdx,babel.mdx,ci-build-caching.mdx,content-security-policy.mdx,css-in-js.mdx,custom-server.mdx,debugging.mdx,draft-mode.mdx,environment-variables.mdx,forms.mdx,incremental-static-regeneration.mdx,instrumentation.mdx,internationalization.mdx,lazy-loading.mdx,mdx.mdx,multi-zones.mdx,open-telemetry.mdx,package-bundling.mdx,post-css.mdx,preview-mode.mdx,production-checklist.mdx,redirecting.mdx,sass.mdx,scripts.mdx,self-hosting.mdx,static-exports.mdx,tailwind-v3-css.mdx,third-party-libraries.mdx}|02-pages/02-guides/migrating:{app-router-migration.mdx,from-create-react-app.mdx,from-vite.mdx}|02-pages/02-guides/testing:{cypress.mdx,jest.mdx,playwright.mdx,vitest.mdx}|02-pages/02-guides/upgrading:{codemods.mdx,version-10.mdx,version-11.mdx,version-12.mdx,version-13.mdx,version-14.mdx,version-9.mdx}|02-pages/03-building-your-application/01-routing:{01-pages-and-layouts.mdx,02-dynamic-routes.mdx,03-linking-and-navigating.mdx,05-custom-app.mdx,06-custom-document.mdx,07-api-routes.mdx,08-custom-error.mdx}|02-pages/03-building-your-application/02-rendering:{01-server-side-rendering.mdx,02-static-site-generation.mdx,04-automatic-static-optimization.mdx,05-client-side-rendering.mdx}|02-pages/03-building-your-application/03-data-fetching:{01-get-static-props.mdx,02-get-static-paths.mdx,03-forms-and-mutations.mdx,03-get-server-side-props.mdx,05-client-side.mdx}|02-pages/03-building-your-application/06-configuring:{12-error-handling.mdx}|02-pages/04-api-reference:{06-edge.mdx,08-turbopack.mdx}|02-pages/04-api-reference/01-components:{font.mdx,form.mdx,head.mdx,image-legacy.mdx,image.mdx,link.mdx,script.mdx}|02-pages/04-api-reference/02-file-conventions:{instrumentation.mdx,proxy.mdx,public-folder.mdx,src-folder.mdx}|02-pages/04-api-reference/03-functions:{get-initial-props.mdx,get-server-side-props.mdx,get-static-paths.mdx,get-static-props.mdx,next-request.mdx,next-response.mdx,use-params.mdx,use-report-web-vitals.mdx,use-router.mdx,use-search-params.mdx,userAgent.mdx}|02-pages/04-api-reference/04-config/01-next-config-js:{adapterPath.mdx,allowedDevOrigins.mdx,assetPrefix.mdx,basePath.mdx,bundlePagesRouterDependencies.mdx,compress.mdx,crossOrigin.mdx,devIndicators.mdx,distDir.mdx,env.mdx,exportPathMap.mdx,generateBuildId.mdx,generateEtags.mdx,headers.mdx,httpAgentOptions.mdx,images.mdx,onDemandEntries.mdx,optimizePackageImports.mdx,output.mdx,pageExtensions.mdx,poweredByHeader.mdx,productionBrowserSourceMaps.mdx,proxyClientMaxBodySize.mdx,reactStrictMode.mdx,redirects.mdx,rewrites.mdx,serverExternalPackages.mdx,trailingSlash.mdx,transpilePackages.mdx,turbopack.mdx,typescript.mdx,urlImports.mdx,useLightningcss.mdx,webVitalsAttribution.mdx,webpack.mdx}|02-pages/04-api-reference/04-config:{01-typescript.mdx,02-eslint.mdx}|02-pages/04-api-reference/05-cli:{create-next-app.mdx,next.mdx}|03-architecture:{accessibility.mdx,fast-refresh.mdx,nextjs-compiler.mdx,supported-browsers.mdx}|04-community:{01-contribution-guide.mdx,02-rspack.mdx}<!-- NEXT-AGENTS-MD-END -->
+RTK is globally installed and transparently rewrites all Bash commands via hook.
+Run `rtk gain` to see token savings. Run `rtk discover` to identify missed optimizations.

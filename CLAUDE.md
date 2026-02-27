@@ -52,3 +52,13 @@ AWS_BUCKET_NAME=delivery
 AWS_ENDPOINT=http://127.0.0.1:3900
 YNS_API_KEY=<key>
 ```
+
+## Token Optimization (RTK)
+
+RTK est installé globalement — toutes les commandes Bash sont automatiquement optimisées via `~/.claude/hooks/rtk-rewrite.sh`. Aucune action manuelle requise.
+
+Commandes disponibles si besoin explicite :
+- `rtk git status` / `rtk git log` — output git condensé
+- `rtk ls .` — arborescence compacte
+- `rtk test <cmd>` — affiche seulement les échecs
+- `rtk gain` — statistiques de tokens économisés
