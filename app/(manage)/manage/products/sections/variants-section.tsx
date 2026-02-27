@@ -60,6 +60,7 @@ export function VariantsSection({
 }: VariantsSectionProps) {
 	const [valueInputs, setValueInputs] = useState<Record<number, string>>({});
 	const [colorInputs, setColorInputs] = useState<Record<number, string>>({});
+	const [confirmDeleteIdx, setConfirmDeleteIdx] = useState<number | null>(null);
 
 	const handleAddValue = (idx: number) => {
 		const val = (valueInputs[idx] || "").trim();
@@ -160,14 +161,44 @@ export function VariantsSection({
 									>
 										<Plus size={11} />
 									</button>
+								{confirmDeleteIdx === idx ? (
+									<div className="flex items-center gap-1">
+										<button
+											type="button"
+											onClick={(e) => {
+												e.stopPropagation();
+												removeOption(idx);
+												setConfirmDeleteIdx(null);
+											}}
+											className="h-5 px-1.5 flex items-center justify-center bg-red-500 text-white text-[8px] font-bold hover:bg-red-600"
+										>
+											OUI
+										</button>
+										<button
+											type="button"
+											onClick={(e) => {
+												e.stopPropagation();
+												setConfirmDeleteIdx(null);
+											}}
+											className="h-5 px-1.5 flex items-center justify-center bg-white text-black text-[8px] font-bold hover:bg-neutral-200"
+										>
+											NON
+										</button>
+									</div>
+								) : (
 									<button
 										type="button"
-										onClick={() => removeOption(idx)}
+										onClick={(e) => {
+											e.stopPropagation();
+											setConfirmDeleteIdx(idx);
+										}}
 										className="h-5 w-5 flex items-center justify-center text-white hover:bg-white hover:text-black"
-										title="Supprimer"
+										title="Supprimer cette option"
+										aria-label={`Supprimer l'option ${option.name || idx + 1}`}
 									>
 										<X size={11} />
 									</button>
+								)}
 								</div>
 							</div>
 
@@ -225,8 +256,12 @@ export function VariantsSection({
 													{val}
 													<button
 														type="button"
-														onClick={() => removeOptionValue(idx, valIdx)}
+														onClick={(e) => {
+															e.stopPropagation();
+															removeOptionValue(idx, valIdx);
+														}}
 														className="opacity-60 hover:opacity-100 ml-0.5"
+														aria-label={`Supprimer la valeur ${val}`}
 													>
 														<X size={8} />
 													</button>

@@ -463,11 +463,6 @@ export function ProductForm({ product, categories, collections, title, descripti
 		handleSubmit(formData);
 	};
 
-	const removeOptionWithConfirm = (index: number) => {
-		const label = options[index]?.name || `Option ${index + 1}`;
-		if (!window.confirm(`Supprimer l'option "${label}" ? Toutes les variantes seront régénérées.`)) return;
-		removeOption(index);
-	};
 
 	const toggleCollection = (slug: string) => {
 		if (selectedCollections.includes(slug)) {
@@ -650,7 +645,7 @@ export function ProductForm({ product, categories, collections, title, descripti
 											handleVariantImageUpload={handleVariantImageUpload}
 											uploadingVariantValue={uploadingVariantValue}
 											updateOptionType={updateOptionType}
-											removeOption={removeOptionWithConfirm}
+											removeOption={removeOption}
 											moveOption={moveOption}
 											duplicateOption={duplicateOption}
 											addOption={addOption}
