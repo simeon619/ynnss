@@ -19,7 +19,8 @@ async function selectStore(page: Page) {
 	await expect(manageStoreButton).toBeVisible({ timeout: 10000 });
 	await manageStoreButton.click();
 	await page.waitForURL("**/manage**", { timeout: 15000 });
-	await page.waitForLoadState("networkidle");
+	await page.waitForLoadState("domcontentloaded");
+	await page.waitForTimeout(500);
 }
 
 async function login(page: Page) {
@@ -57,15 +58,12 @@ async function login(page: Page) {
 }
 
 async function navigateTo(page: Page, url: string) {
-	await page.goto(url);
-	await page.waitForLoadState("domcontentloaded");
-	await page.waitForTimeout(500);
-	// Handle potential redirect to select-store
-	if (page.url().includes("/select-store")) {
-		await selectStore(page);
+	for (let attempt = 0; attempt < 3; attempt++) {
 		await page.goto(url);
 		await page.waitForLoadState("domcontentloaded");
 		await page.waitForTimeout(500);
+		if (!page.url().includes("/select-store")) break;
+		await selectStore(page);
 	}
 }
 
@@ -121,6 +119,39 @@ test.describe.serial("Product Options", () => {
 		const href = await firstEditLink.getAttribute("href");
 
 		await addOptionAndDelete(page, href as string);
+	});
+
+	test("should cancel option deletion when clicking NON", async ({ page }) => {
+		await navigateTo(page, "/manage/products/new");
+
+		const addOptionButton = page.locator("button").filter({ hasText: /AJOUTER UNE OPTION/i });
+		await expect(addOptionButton).toBeVisible({ timeout: 10000 });
+		await addOptionButton.click();
+
+		const optionCard = page.locator("div.border-2.border-black:has(div.bg-black)").first();
+		await expect(optionCard).toBeVisible({ timeout: 10000 });
+
+		const nameInput = optionCard.locator('input[list^="labels-"]');
+		await nameInput.fill("Taille");
+
+		// Click X → confirmation appears
+		const deleteButton = optionCard.locator('button[title="Supprimer cette option"]');
+		await expect(deleteButton).toBeVisible();
+		await deleteButton.click();
+
+		// OUI and NON buttons should be visible
+		await expect(page.locator("button", { hasText: "OUI" })).toBeVisible({ timeout: 3000 });
+		await expect(page.locator("button", { hasText: "NON" })).toBeVisible({ timeout: 3000 });
+
+		// Click NON to cancel
+		await page.locator("button", { hasText: "NON" }).click();
+
+		// OUI/NON should disappear, X button should be back, option card still present
+		await expect(page.locator("button", { hasText: "OUI" })).not.toBeVisible();
+		await expect(page.locator("button", { hasText: "NON" })).not.toBeVisible();
+		await expect(deleteButton).toBeVisible();
+		await expect(optionCard).toBeVisible();
+		await expect(page.getByText("Créez votre première option")).not.toBeVisible();
 	});
 
 	test("should delete an option value when clicking the X button", async ({ page }) => {
