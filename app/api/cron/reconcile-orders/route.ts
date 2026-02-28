@@ -8,6 +8,11 @@ import { getWalletTransactions } from "@/lib/wave/wallets";
 // Orders older than 10 minutes that are still pending
 const STALE_THRESHOLD_MS = 10 * 60 * 1000;
 
+type LedgerEntry = {
+	externalReference: string | null;
+	fundsStatus: string;
+};
+
 export async function POST(req: Request) {
 	const secret = req.headers.get("x-cron-secret");
 	if (secret !== process.env.CRON_SECRET) {
@@ -25,7 +30,7 @@ export async function POST(req: Request) {
 			const db = await getTenantDb(store.id);
 
 			const staleOrders = await db
-				.select({ id: orders.id, transactionId: orders.transactionId })
+				.select({ id: orders.id })
 				.from(orders)
 				.where(
 					and(eq(orders.status, "pending"), eq(orders.paymentMethod, "WAVE"), lt(orders.createdAt, cutoff)),
@@ -33,21 +38,22 @@ export async function POST(req: Request) {
 
 			if (staleOrders.length === 0) continue;
 
-			const transactions = await getWalletTransactions(store.waveWalletId);
-			if (!Array.isArray(transactions) || transactions.length === 0) continue;
+			// Build set of paid order IDs from external references in the ledger
+			// Each ledger entry has externalReference = "ord_{orderId}"
+			const ledgerData = await getWalletTransactions(store.waveWalletId);
+			const entries: LedgerEntry[] = Array.isArray(ledgerData)
+				? ledgerData
+				: (ledgerData?.transactions ?? []);
 
-			// Build a lookup set of succeeded transaction IDs
-			const succeededTxIds = new Set<string>(
-				transactions
-					.filter(
-						(tx: { status: string; id: string }) => tx.status === "SUCCEEDED" || tx.status === "succeeded",
-					)
-					.map((tx: { id: string }) => tx.id),
+			const paidOrderIds = new Set<string>(
+				entries
+					.filter((e) => e.fundsStatus === "AVAILABLE" || e.fundsStatus === "LOCKED")
+					.map((e) => e.externalReference?.replace(/^ord_/, "") ?? "")
+					.filter(Boolean),
 			);
 
 			for (const order of staleOrders) {
-				if (!order.transactionId) continue;
-				if (!succeededTxIds.has(order.transactionId)) continue;
+				if (!paidOrderIds.has(order.id)) continue;
 
 				await db.update(orders).set({ status: "paid" }).where(eq(orders.id, order.id));
 
