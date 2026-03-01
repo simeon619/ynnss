@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+	ArrowLeft,
 	ChevronDown,
 	ChevronRight,
 	GripVertical,
@@ -28,6 +29,7 @@ import {
 	Send,
 	Trash2,
 } from "lucide-react";
+import Link from "next/link";
 import { type CSSProperties, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -649,6 +651,13 @@ export function ThemeStudio({ initialData, collectionOptions }: ThemeStudioProps
 			{/* Header */}
 			<div className="flex items-center justify-between px-4 py-2 border-b-2 border-black bg-white shrink-0">
 				<div className="flex items-center gap-3">
+					<Link
+						href="/manage/themes"
+						className="flex items-center gap-1 border-2 border-black px-3 h-9 font-mono font-bold text-xs uppercase hover:bg-black hover:text-white transition-all"
+					>
+						<ArrowLeft size={14} />
+						Retour
+					</Link>
 					<span className="font-black text-sm uppercase tracking-widest">THEME STUDIO</span>
 					<Badge className="bg-yellow-400 text-black border-2 border-black font-mono text-xs">DRAFT</Badge>
 				</div>

@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowUp, Plus, RotateCcw, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { ArrowDown, ArrowUp, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type CSSProperties, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -252,13 +251,6 @@ export function ThemeBuilder({ initialData, collectionOptions }: ThemeBuilderPro
 			<div className="max-w-7xl mx-auto space-y-8">
 				<div className="flex flex-col lg:flex-row gap-6 lg:items-end lg:justify-between">
 					<div>
-						<Link
-							href="/manage/themes"
-							className="inline-flex items-center gap-1 border-2 border-black px-3 h-9 font-mono font-bold text-xs uppercase hover:bg-black hover:text-white transition-all mb-4"
-						>
-							<ArrowLeft size={14} />
-							Retour
-						</Link>
 						<p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2">Theme Studio</p>
 						<h1 className="text-4xl md:text-6xl font-black uppercase leading-none">Configurer mon thème</h1>
 						<p className="mt-3 text-xs font-bold uppercase text-neutral-600">
