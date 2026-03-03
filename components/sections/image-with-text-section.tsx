@@ -132,6 +132,7 @@ export function ImageWithTextSection({ settings }: ImageWithTextSectionProps) {
 						<YnsLink
 							href={settings.primaryButtonHref || "#"}
 							data-theme-role="button"
+							data-theme-button-kind="primary"
 							data-theme-slot="imageWithText.primaryCta"
 							data-theme-field="imageWithText.primaryButtonLink"
 							aria-hidden={!hasPrimaryCta}
@@ -143,6 +144,7 @@ export function ImageWithTextSection({ settings }: ImageWithTextSectionProps) {
 						<YnsLink
 							href={settings.secondaryButtonHref || "#"}
 							data-theme-role="button"
+							data-theme-button-kind="secondary"
 							data-theme-slot="imageWithText.secondaryCta"
 							data-theme-field="imageWithText.secondaryButtonLink"
 							aria-hidden={!hasSecondaryCta}

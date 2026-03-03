@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { type CSSProperties, Suspense } from "react";
 
@@ -15,41 +15,9 @@ import { commerce } from "@/lib/commerce";
 import { getCartCookieJson } from "@/lib/cookies";
 import { getTenantDb } from "@/lib/db";
 import { getFormattingFromSettings } from "@/lib/store-settings";
-import { getStorefrontStoreId } from "@/lib/storefront";
-import { extractStoreSlugFromStorefrontPath } from "@/lib/storefront-paths";
+import { getStoreBySlug } from "@/lib/storefront";
+import { buildStorefrontBasePath, prependStorefrontBasePath } from "@/lib/storefront-paths";
 import { resolveStorefrontTheme } from "@/lib/theme";
-
-function extractPathFromUrlCandidate(urlOrPath: string | null | undefined) {
-	if (!urlOrPath) return null;
-	if (urlOrPath.startsWith("/")) return urlOrPath;
-	try {
-		const parsed = new URL(urlOrPath);
-		return parsed.pathname;
-	} catch {
-		return null;
-	}
-}
-
-async function isStoreSlugRouteRequest() {
-	try {
-		const headerStore = await headers();
-		const slugFromHeader = headerStore.get("x-storefront-slug")?.trim();
-		if (slugFromHeader) return true;
-
-		const candidates = [
-			headerStore.get("next-url"),
-			headerStore.get("x-next-url"),
-			headerStore.get("x-pathname"),
-			headerStore.get("x-invoke-path"),
-		];
-
-		return candidates
-			.map((candidate) => extractPathFromUrlCandidate(candidate))
-			.some((path) => Boolean(extractStoreSlugFromStorefrontPath(path)));
-	} catch {
-		return false;
-	}
-}
 
 async function getInitialCart() {
 	const cartCookie = await getCartCookieJson();
@@ -64,6 +32,20 @@ async function getInitialCart() {
 	} catch {
 		return { cart: null, cartId: cartCookie.id };
 	}
+}
+
+function StoreUnavailable({ storeName }: { storeName: string }) {
+	return (
+		<div className="min-h-screen bg-white text-black flex items-center justify-center p-6">
+			<div className="w-full max-w-xl border-4 border-black p-8 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+				<p className="text-xs font-black uppercase tracking-[0.2em] mb-3">Store Status</p>
+				<h1 className="text-3xl font-black uppercase mb-4">{storeName}</h1>
+				<p className="text-sm font-bold uppercase">
+					Cette boutique est temporairement indisponible. Revenez plus tard.
+				</p>
+			</div>
+		</div>
+	);
 }
 
 async function CartProviderWrapper({
@@ -114,7 +96,7 @@ async function CartProviderWrapper({
 									<div className="flex flex-col">
 										<YnsLink
 											prefetch={"eager"}
-											href="/"
+											href={prependStorefrontBasePath(basePath, "/")}
 											className="text-xl font-black uppercase tracking-tight"
 										>
 											{brandName}
@@ -146,32 +128,38 @@ async function CartProviderWrapper({
 	);
 }
 
-export default async function StoreLayout({ children }: { children: React.ReactNode }) {
+export default async function StoreSlugLayout({
+	children,
+	params,
+}: {
+	children: React.ReactNode;
+	params: Promise<{ storeSlug: string }>;
+}) {
 	await connection();
-	if (await isStoreSlugRouteRequest()) {
-		return children;
+	const { storeSlug } = await params;
+	const globalStore = await getStoreBySlug(storeSlug);
+	if (!globalStore) {
+		notFound();
 	}
 
-	const storeId = await getStorefrontStoreId();
+	if (globalStore.status === "suspended") {
+		return <StoreUnavailable storeName={globalStore.name} />;
+	}
+
+	const storeId = globalStore.id;
 	const db = await getTenantDb(storeId);
 	const store = (await db.query.storeSettings.findFirst()) || {
-		name: "Store",
+		name: globalStore.name || "Store",
 		showReferralBadge: true,
 		currency: "XOF",
 		language: "Français",
 	};
 	const theme = await resolveStorefrontTheme(storeId);
+	const basePath = buildStorefrontBasePath(storeSlug);
 
 	return (
 		<Suspense>
-			{theme.googleFontUrl && (
-				<>
-					<link rel="preconnect" href="https://fonts.googleapis.com" />
-					<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-					<link rel="stylesheet" href={theme.googleFontUrl} />
-				</>
-			)}
-			<CartProviderWrapper store={store} theme={theme} basePath="">
+			<CartProviderWrapper store={store} theme={theme} basePath={basePath}>
 				{children}
 			</CartProviderWrapper>
 		</Suspense>

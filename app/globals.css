@@ -31,14 +31,9 @@
 	--color-chart-3: var(--chart-3);
 	--color-chart-4: var(--chart-4);
 	--color-chart-5: var(--chart-5);
-	--color-sidebar: var(--sidebar);
-	--color-sidebar-foreground: var(--sidebar-foreground);
-	--color-sidebar-primary: var(--sidebar-primary);
-	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-	--color-sidebar-accent: var(--sidebar-accent);
-	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-	--color-sidebar-border: var(--sidebar-border);
-	--color-sidebar-ring: var(--sidebar-ring);
+	--color-sidebar-border: oklch(0.922 0 0);
+	--color-sidebar-ring: oklch(0.708 0 0);
+	--color-neonGreen: #39ff14;
 }
 
 :root {
@@ -117,6 +112,107 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+	.maplibregl-popup-content {
+		@apply bg-transparent! shadow-none! p-0! rounded-none!;
+	}
+	.maplibregl-popup-tip {
+		@apply hidden!;
+	}
+}
+
+.theme-rich-text,
+.theme-rich-text-editor .ProseMirror {
+	font-size: 1rem;
+	line-height: 1.75;
+	color: inherit;
+}
+
+.theme-rich-text-editor .ProseMirror {
+	min-height: 120px;
+	outline: none;
+}
+
+.theme-rich-text :where(p, ul, ol, li, a, h2, h3, blockquote, hr, strong, em, u),
+.theme-rich-text-editor .ProseMirror :where(p, ul, ol, li, a, h2, h3, blockquote, hr, strong, em, u) {
+	color: inherit;
+}
+
+.theme-rich-text :where(p, ul, ol, blockquote, hr, h2, h3),
+.theme-rich-text-editor .ProseMirror :where(p, ul, ol, blockquote, hr, h2, h3) {
+	margin: 0;
+}
+
+.theme-rich-text :where(p + p, p + ul, p + ol, p + blockquote, p + hr, ul + p, ol + p, blockquote + p),
+.theme-rich-text-editor
+	.ProseMirror
+	:where(p + p, p + ul, p + ol, p + blockquote, p + hr, ul + p, ol + p, blockquote + p) {
+	margin-top: 1rem;
+}
+
+.theme-rich-text :where(ul, ol),
+.theme-rich-text-editor .ProseMirror :where(ul, ol) {
+	padding-left: 1.5rem;
+	margin-left: 0.25rem;
+}
+
+.theme-rich-text ul,
+.theme-rich-text-editor .ProseMirror ul {
+	list-style: disc;
+}
+
+.theme-rich-text ol,
+.theme-rich-text-editor .ProseMirror ol {
+	list-style: decimal;
+}
+
+.theme-rich-text li + li,
+.theme-rich-text-editor .ProseMirror li + li {
+	margin-top: 0.35rem;
+}
+
+.theme-rich-text strong,
+.theme-rich-text-editor .ProseMirror strong {
+	font-weight: 900;
+}
+
+.theme-rich-text em,
+.theme-rich-text-editor .ProseMirror em {
+	font-style: italic;
+}
+
+.theme-rich-text :where(a, u),
+.theme-rich-text-editor .ProseMirror :where(a, u) {
+	text-decoration: underline;
+	text-underline-offset: 0.18em;
+}
+
+.theme-rich-text h2,
+.theme-rich-text-editor .ProseMirror h2 {
+	font-size: 1.75rem;
+	font-weight: 900;
+	line-height: 1.2;
+	text-transform: uppercase;
+}
+
+.theme-rich-text h3,
+.theme-rich-text-editor .ProseMirror h3 {
+	font-size: 1.35rem;
+	font-weight: 900;
+	line-height: 1.25;
+	text-transform: uppercase;
+}
+
+.theme-rich-text blockquote,
+.theme-rich-text-editor .ProseMirror blockquote {
+	border-left: 4px solid currentColor;
+	padding-left: 1rem;
+	font-weight: 700;
+}
+
+.theme-rich-text hr,
+.theme-rich-text-editor .ProseMirror hr {
+	border: 0;
+	border-top: 4px solid currentColor;
 }
 
 .yns-image-shimmer {
@@ -139,4 +235,122 @@
 	100% {
 		background-position: -200% 0;
 	}
+}
+@layer utilities {
+	.yns-aspect-4-3 {
+		aspect-ratio: 4 / 3;
+	}
+
+	.premium-shadow {
+		box-shadow: 0 10px 30px -10px oklch(0 0 0 / 5%), 0 4px 10px -5px oklch(0 0 0 / 2%);
+	}
+
+	.premium-border {
+		@apply border border-border/40;
+	}
+
+	.glass-effect {
+		@apply bg-background/70 backdrop-blur-md border border-white/20;
+	}
+
+	.text-balance {
+		text-wrap: balance;
+	}
+
+	.animate-soft-fade-in {
+		animation: soft-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+}
+
+
+
+@keyframes soft-fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Manage dashboard scope - black borders for brutalist theme */
+.manage-dashboard {
+	--border: oklch(0 0 0);
+	--input: oklch(0 0 0);
+}
+
+/* Storefront theme scope - all runtime tokens are injected on this class */
+.storefront-theme {
+	font-family: var(--store-font-family);
+	font-size: var(--store-base-font-size, 16px);
+}
+
+.storefront-theme * {
+	font-family: inherit;
+	border-radius: var(--radius, 0px) !important;
+}
+
+.storefront-theme h1 {
+	font-family: var(--store-heading-font-family, inherit);
+	font-weight: var(--store-heading-font-weight, 900);
+	font-size: var(--store-h1-size, 2.5rem);
+}
+
+.storefront-theme h2 {
+	font-family: var(--store-heading-font-family, inherit);
+	font-weight: var(--store-heading-font-weight, 900);
+	font-size: var(--store-h2-size, 1.875rem);
+}
+
+.storefront-theme h3 {
+	font-family: var(--store-heading-font-family, inherit);
+	font-weight: var(--store-heading-font-weight, 900);
+	font-size: var(--store-h3-size, 1.5rem);
+}
+
+.storefront-theme [data-theme-section] {
+	padding-top: var(--store-section-spacing-y, 3rem);
+	padding-bottom: var(--store-section-spacing-y, 3rem);
+}
+
+.storefront-theme [data-theme-container] {
+	max-width: var(--store-content-max-width, 80rem);
+}
+
+.storefront-theme [data-theme-role="button"] {
+	height: var(--store-button-height, 2.5rem);
+	padding-left: var(--store-button-padding-x, 1.5rem);
+	padding-right: var(--store-button-padding-x, 1.5rem);
+	font-size: var(--store-button-font-size, 0.875rem);
+}
+
+.storefront-theme [data-theme-surface="card"] {
+	border-style: solid;
+	border-color: var(--border);
+	border-width: var(--store-card-border-width);
+	box-shadow: var(--store-hard-shadow);
+}
+
+.storefront-theme [data-theme-role="button"] {
+	border-style: solid;
+	border-width: var(--store-button-border-width);
+}
+
+.storefront-theme[data-theme-button-style="outline"] [data-theme-role="button"][data-theme-button-kind="primary"] {
+	background: transparent !important;
+	color: var(--foreground) !important;
+	border-color: var(--foreground) !important;
+}
+
+.storefront-theme[data-theme-button-style="outline"] [data-theme-role="button"][data-theme-button-kind="primary"]:hover {
+	background: var(--foreground) !important;
+	color: var(--background) !important;
+}
+
+.storefront-theme .border,
+.storefront-theme .border-2,
+.storefront-theme .border-4 {
+	border-width: var(--store-border-width) !important;
 }

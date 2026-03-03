@@ -60,6 +60,7 @@ function applyCssSnapshot(styleTokens: ThemeStyleTokens) {
 	for (const [key, value] of Object.entries(cssVars)) {
 		root.style.setProperty(key, value);
 	}
+	root.setAttribute("data-theme-button-style", styleTokens.buttonStyle ?? "filled");
 }
 
 function applyHeroBlockSnapshot(blockNode: Element, block: ThemeBlockInstance) {
